@@ -95,6 +95,46 @@
   --fr-orange: #E8834A;
 }
 
+.dark {
+  --background: #1C1712;
+  --foreground: #F0E8DC;
+  --card: #26201A;
+  --card-foreground: #F0E8DC;
+  --popover: #26201A;
+  --popover-foreground: #F0E8DC;
+  --primary: #D44C2A;
+  --primary-foreground: #F0E8DC;
+  --secondary: #332A22;
+  --secondary-foreground: #F0E8DC;
+  --muted: #332A22;
+  --muted-foreground: #9A8A7A;
+  --accent: #332A22;
+  --accent-foreground: #F0E8DC;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #4A3D32;
+  --input: #4A3D32;
+  --ring: #D44C2A;
+  --sidebar: #1C1712;
+  --sidebar-foreground: #F0E8DC;
+  --sidebar-primary: #D44C2A;
+  --sidebar-primary-foreground: #F0E8DC;
+  --sidebar-accent: #332A22;
+  --sidebar-accent-foreground: #F0E8DC;
+  --sidebar-border: #4A3D32;
+  --sidebar-ring: #D44C2A;
+  /* Chalk Market Dark semantic tokens */
+  --fr-bg-primary: #1C1712;
+  --fr-bg-secondary: #26201A;
+  --fr-bg-tertiary: #332A22;
+  --fr-text-primary: #F0E8DC;
+  --fr-text-secondary: #9A8A7A;
+  --fr-accent: #D44C2A;
+  --fr-accent-hover: #B83D1E;
+  --fr-accent-light: #3D1A10;
+  --fr-green: #4A9B6F;
+  --fr-orange: #E8834A;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -105,4 +145,18 @@
   html {
     @apply font-sans;
   }
+}
+
+@keyframes fr-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+.user-location-dot {
+  width: 14px;
+  height: 14px;
+  background: #3B82F6;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  animation: fr-pulse 2s ease-in-out infinite;
 }

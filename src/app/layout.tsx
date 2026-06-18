@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Khmer } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -31,8 +32,10 @@ export default function RootLayout({
       className={`${inter.variable} ${notoKhmer.variable} h-full antialiased`}
     >
       <body className="bg-background text-foreground min-h-full">
-        {children}
-        <Toaster richColors position="top-center" />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {children}
+          <Toaster richColors position="top-center" />
+        </ThemeProvider>
       </body>
     </html>
   );

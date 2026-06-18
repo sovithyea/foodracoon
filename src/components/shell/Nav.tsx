@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Map, Search, ListChecks, Newspaper, User, LogOut } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Map, Search, ListChecks, Newspaper, User, LogOut, Sun, Moon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ const ITEMS = [
 export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { resolvedTheme, setTheme } = useTheme();
 
   async function signOut() {
     await createClient().auth.signOut();
@@ -55,6 +57,13 @@ export function Nav() {
             );
           })}
         </ul>
+        <button
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          className="text-muted-foreground hover:text-foreground flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium"
+        >
+          {resolvedTheme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+        </button>
         <button
           onClick={signOut}
           className="text-muted-foreground hover:text-foreground flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium"
