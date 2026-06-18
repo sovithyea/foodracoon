@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Map, Search, ListChecks, Newspaper, User, LogOut, Sun, Moon } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { Map, Search, ListChecks, Newspaper, User, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
@@ -17,14 +16,7 @@ const ITEMS = [
 
 export function Nav() {
   const pathname = usePathname();
-  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
-
-  async function signOut() {
-    await createClient().auth.signOut();
-    router.replace("/login");
-    router.refresh();
-  }
 
   return (
     <>
@@ -63,13 +55,6 @@ export function Nav() {
         >
           {resolvedTheme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
           {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
-        </button>
-        <button
-          onClick={signOut}
-          className="text-muted-foreground hover:text-foreground flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium"
-        >
-          <LogOut className="size-4" />
-          Sign out
         </button>
       </nav>
 
