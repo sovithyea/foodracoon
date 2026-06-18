@@ -112,7 +112,7 @@ export function RestaurantMap() {
           "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           "text-size": 13,
         },
-        paint: { "text-color": "#fff" },
+        paint: { "text-color": "#F5F0E8" },
       });
 
       // Individual restaurants — saved ones glow saffron, others terracotta.

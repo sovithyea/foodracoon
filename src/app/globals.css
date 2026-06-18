@@ -82,6 +82,17 @@
   --sidebar-accent-foreground: #2C2420;
   --sidebar-border: #D4C8B4;
   --sidebar-ring: #D44C2A;
+  /* Chalk Market semantic tokens */
+  --fr-bg-primary: #F5F0E8;
+  --fr-bg-secondary: #EDE6D8;
+  --fr-bg-tertiary: #D4C8B4;
+  --fr-text-primary: #2C2420;
+  --fr-text-secondary: #8C7E72;
+  --fr-accent: #D44C2A;
+  --fr-accent-hover: #B83D1E;
+  --fr-accent-light: #F5E8E4;
+  --fr-green: #3A7A5C;
+  --fr-orange: #E8834A;
 }
 
 @layer base {
