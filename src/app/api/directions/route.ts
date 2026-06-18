@@ -1,8 +1,4 @@
-import mbxDirections from "@mapbox/mapbox-sdk/services/directions";
-
-const directionsClient = mbxDirections({
-  accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN!,
-});
+const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -11,50 +7,43 @@ export async function GET(req: Request) {
   const profile = searchParams.get("profile") ?? "walking";
 
   if (!from || !to) {
-    return Response.json({ error: "Missing from or to params" }, { status: 400 });
+    return Response.json({ error: "Missing from or to" }, { status: 400 });
   }
-
-  const [fromLng, fromLat] = from.split(",").map(Number);
-  const [toLng, toLat] = to.split(",").map(Number);
-
-  if ([fromLng, fromLat, toLng, toLat].some(isNaN)) {
-    return Response.json({ error: "Invalid coordinates" }, { status: 400 });
+  if (!TOKEN) {
+    return Response.json({ error: "Mapbox token not configured" }, { status: 500 });
   }
 
   const validProfile = profile === "driving" ? "driving" : "walking";
+  const coords = `${from};${to}`;
+  const url = `https://api.mapbox.com/directions/v5/mapbox/${validProfile}/${coords}?geometries=geojson&steps=true&overview=full&access_token=${TOKEN}`;
 
-  try {
-    const res = await directionsClient
-      .getDirections({
-        profile: `mapbox/${validProfile}` as Parameters<typeof directionsClient.getDirections>[0]["profile"],
-        waypoints: [
-          { coordinates: [fromLng, fromLat] },
-          { coordinates: [toLng, toLat] },
-        ],
-        steps: true,
-        geometries: "geojson",
-        overview: "full",
-      })
-      .send();
-
-    const route = res.body.routes?.[0];
-    if (!route) {
-      return Response.json({ error: "No route found" }, { status: 404 });
-    }
-
-    return Response.json({
-      geometry: route.geometry,
-      distance: route.distance,
-      duration: route.duration,
-      steps: route.legs[0].steps.map((s) => ({
-        instruction: s.maneuver.instruction,
-        distance: s.distance,
-        duration: s.duration,
-        type: s.maneuver.type,
-        modifier: s.maneuver.modifier,
-      })),
-    });
-  } catch {
-    return Response.json({ error: "Failed to fetch directions" }, { status: 500 });
+  const res = await fetch(url);
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Mapbox Directions error:", res.status, text);
+    return Response.json({ error: "Directions API failed" }, { status: 502 });
   }
+
+  const data = await res.json();
+  const route = data.routes?.[0];
+  if (!route) {
+    return Response.json({ error: "No route found" }, { status: 404 });
+  }
+
+  return Response.json({
+    geometry: route.geometry,
+    distance: route.distance,
+    duration: route.duration,
+    steps: route.legs[0].steps.map((s: {
+      maneuver: { instruction: string; type: string; modifier?: string };
+      distance: number;
+      duration: number;
+    }) => ({
+      instruction: s.maneuver.instruction,
+      distance: s.distance,
+      duration: s.duration,
+      type: s.maneuver.type,
+      modifier: s.maneuver.modifier,
+    })),
+  });
 }
