@@ -133,18 +133,21 @@ export type Database = {
           added_at: string
           list_id: string
           note: string | null
+          position: number
           restaurant_id: string
         }
         Insert: {
           added_at?: string
           list_id: string
           note?: string | null
+          position?: number
           restaurant_id: string
         }
         Update: {
           added_at?: string
           list_id?: string
           note?: string | null
+          position?: number
           restaurant_id?: string
         }
         Relationships: [
@@ -172,6 +175,7 @@ export type Database = {
           emoji: string | null
           id: string
           is_public: boolean
+          slug: string | null
           title: string
           user_id: string
         }
@@ -182,6 +186,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           is_public?: boolean
+          slug?: string | null
           title: string
           user_id: string
         }
@@ -192,6 +197,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           is_public?: boolean
+          slug?: string | null
           title?: string
           user_id?: string
         }
