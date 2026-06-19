@@ -221,6 +221,7 @@ export type Database = {
           followers_count: number
           following_count: number
           id: string
+          is_admin: boolean | null
           username: string | null
         }
         Insert: {
@@ -232,6 +233,7 @@ export type Database = {
           followers_count?: number
           following_count?: number
           id: string
+          is_admin?: boolean | null
           username?: string | null
         }
         Update: {
@@ -243,6 +245,7 @@ export type Database = {
           followers_count?: number
           following_count?: number
           id?: string
+          is_admin?: boolean | null
           username?: string | null
         }
         Relationships: []
