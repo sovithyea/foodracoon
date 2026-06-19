@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star, Send, ArrowUpRight, Navigation } from "lucide-react";
+import { Star, Bookmark, ArrowUpRight, Navigation } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import {
@@ -19,6 +19,7 @@ import { priceLabel } from "@/lib/restaurants";
 import { haversineDistance, formatDistance, walkTimeMinutes } from "@/lib/geo";
 import { staticMapUrl } from "@/lib/staticMap";
 import { cn } from "@/lib/utils";
+import { AddToListSheet } from "@/components/lists/AddToListSheet";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
@@ -138,6 +139,7 @@ export function RestaurantPanel() {
   const setUserLocation = useMapStore((s) => s.setUserLocation);
   const [gettingDirections, setGettingDirections] = useState(false);
   const [locationPending, setLocationPending] = useState(false);
+  const [addToListOpen, setAddToListOpen] = useState(false);
   const { resolvedTheme } = useTheme();
 
   const restaurant = restaurants.find((r) => r.id === selectedId) ?? null;
@@ -303,9 +305,13 @@ export function RestaurantPanel() {
 
               <RatingSection restaurantId={restaurant.id} />
 
+              {/* Add to list + placeholder CTAs */}
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" disabled title="Coming soon">
-                  <Send className="size-4" /> Recommend
+                <Button
+                  variant="outline"
+                  onClick={() => setAddToListOpen(true)}
+                >
+                  <Bookmark className="size-4" /> Add to list
                 </Button>
                 <Button variant="outline" disabled title="Coming soon">
                   <ArrowUpRight className="size-4" /> View full
@@ -321,6 +327,14 @@ export function RestaurantPanel() {
                 <Navigation className="size-4" />
                 {gettingDirections ? "Getting directions…" : "Get directions"}
               </Button>
+
+              {restaurant && (
+                <AddToListSheet
+                  open={addToListOpen}
+                  onOpenChange={setAddToListOpen}
+                  restaurantId={restaurant.id}
+                />
+              )}
             </div>
           </>
         )}
