@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/lib/database.types"
-
-const ALLOWED_FIELDS = ["tags", "cuisine_type", "price_range", "district", "name", "address"] as const
+import type { Database, TablesUpdate } from "@/lib/database.types"
 
 const adminDb = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,10 +29,14 @@ export async function PATCH(
   }
 
   const body = await request.json()
-  const updates: Record<string, unknown> = {}
-  for (const field of ALLOWED_FIELDS) {
-    if (field in body) updates[field] = body[field]
-  }
+  const updates: TablesUpdate<"restaurants"> = {}
+
+  if ("tags" in body) updates.tags = body.tags
+  if ("cuisine_type" in body) updates.cuisine_type = body.cuisine_type
+  if ("price_range" in body) updates.price_range = body.price_range
+  if ("district" in body) updates.district = body.district
+  if ("name" in body) updates.name = body.name
+  if ("address" in body) updates.address = body.address
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "No valid fields" }, { status: 400 })
