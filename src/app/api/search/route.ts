@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { SearchResult, SearchResponse } from "@/lib/search";
 
 const RESTAURANT_COLS =
-  "id, name, address, district, latitude, longitude, cuisine_type, tags, price_range, google_rating";
+  "id, name, address, district, latitude, longitude, cuisine_type, tags, price_range, google_rating, google_rating_count";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

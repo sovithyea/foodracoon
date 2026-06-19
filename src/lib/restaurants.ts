@@ -13,6 +13,7 @@ export type MapRestaurant = Pick<
   | "tags"
   | "price_range"
   | "google_rating"
+  | "google_rating_count"
   | "cover_photo_url"
 >;
 

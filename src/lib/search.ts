@@ -8,6 +8,7 @@ export type SearchResult = {
   cuisine_type: string[];
   price_range: number | null;
   google_rating: number | null;
+  google_rating_count: number | null;
   matchedDish?: string;
   matchedCuisine?: string;
 };

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Map, Search, ListChecks, Newspaper, User, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const ITEMS = [
   { href: "/", label: "Map", icon: Map },
@@ -17,6 +18,8 @@ const ITEMS = [
 export function Nav() {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <>
@@ -53,8 +56,8 @@ export function Nav() {
           onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
           className="text-muted-foreground hover:text-foreground flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium"
         >
-          {resolvedTheme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+          {mounted && resolvedTheme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          {mounted && resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
         </button>
       </nav>
 

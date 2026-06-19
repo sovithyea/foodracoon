@@ -221,10 +221,16 @@ export function RestaurantPanel() {
                 <span className="text-primary font-medium">
                   {priceLabel(restaurant.price_range)}
                 </span>
-                {restaurant.google_rating != null && (
+                {restaurant.google_rating != null &&
+                  (restaurant.google_rating_count ?? 0) >= 5 && (
                   <span className="inline-flex items-center gap-1">
                     <Star className="size-3.5 fill-current text-amber-400" />
                     {restaurant.google_rating.toFixed(1)}
+                    {restaurant.google_rating_count != null && (
+                      <span className="text-muted-foreground">
+                        ({restaurant.google_rating_count.toLocaleString()})
+                      </span>
+                    )}
                   </span>
                 )}
               </div>

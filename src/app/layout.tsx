@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Khmer } from "next/font/google";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 

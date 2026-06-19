@@ -308,6 +308,7 @@ export type Database = {
           district: string | null
           google_place_id: string | null
           google_rating: number | null
+          google_rating_count: number | null
           id: string
           is_verified: boolean
           latitude: number
@@ -327,6 +328,7 @@ export type Database = {
           district?: string | null
           google_place_id?: string | null
           google_rating?: number | null
+          google_rating_count?: number | null
           id?: string
           is_verified?: boolean
           latitude: number
@@ -346,6 +348,7 @@ export type Database = {
           district?: string | null
           google_place_id?: string | null
           google_rating?: number | null
+          google_rating_count?: number | null
           id?: string
           is_verified?: boolean
           latitude?: number
