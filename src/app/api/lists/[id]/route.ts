@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import type { Tables } from "@/lib/database.types"
+
+type ListUpdate = Partial<Pick<Tables<"lists">, "title" | "slug" | "emoji" | "description" | "is_public">>
 
 function slugify(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
@@ -15,7 +18,7 @@ export async function PUT(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const body = await request.json()
-  const updates: Record<string, unknown> = {}
+  const updates: ListUpdate = {}
   if (body.title !== undefined) {
     updates.title = body.title.trim()
     updates.slug = slugify(body.title.trim())
