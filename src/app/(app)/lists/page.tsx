@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus } from "lucide-react"
+import { Plus, Clock, CheckCircle, Heart, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ListCard } from "@/components/lists/ListCard"
@@ -11,10 +11,10 @@ import { useListsStore } from "@/store/listsStore"
 import type { ListWithCount } from "@/lib/lists"
 import Link from "next/link"
 
-const DEFAULT_LISTS = [
-  { slug: "want-to-try", emoji: "🕐", label: "Want to Try" },
-  { slug: "visited",     emoji: "✅", label: "Visited" },
-  { slug: "favourites",  emoji: "⭐", label: "Favourites" },
+const DEFAULT_LISTS: { slug: string; label: string; Icon: LucideIcon }[] = [
+  { slug: "want-to-try", label: "Want to Try", Icon: Clock },
+  { slug: "visited",     label: "Visited",     Icon: CheckCircle },
+  { slug: "favourites",  label: "Favourites",  Icon: Heart },
 ]
 
 export default function ListsPage() {
@@ -59,13 +59,13 @@ export default function ListsPage() {
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {/* Default lists */}
         <div className="grid grid-cols-3 gap-2">
-          {DEFAULT_LISTS.map(({ slug, emoji, label }) => (
+          {DEFAULT_LISTS.map(({ slug, label, Icon }) => (
             <Link
               key={slug}
               href={`/lists/${slug}`}
-              className="bg-card border-border flex flex-col items-center gap-1 rounded-xl border py-3 text-center hover:bg-accent/30 transition-colors"
+              className="bg-card border-border flex flex-col items-center gap-1.5 rounded-xl border py-3 text-center hover:bg-accent/30 transition-colors"
             >
-              <span className="text-2xl">{emoji}</span>
+              <Icon className="size-4 text-muted-foreground" />
               <span className="text-xs font-medium">{label}</span>
             </Link>
           ))}

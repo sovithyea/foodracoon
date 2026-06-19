@@ -51,7 +51,6 @@ export default async function PublicListPage({ params }: { params: Promise<Param
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Brand header */}
       <header className="border-b px-4 py-3">
         <Link href="/" className="text-primary text-sm font-bold tracking-tight">
           foodracoon
@@ -59,7 +58,6 @@ export default async function PublicListPage({ params }: { params: Promise<Param
       </header>
 
       <main className="mx-auto max-w-lg px-4 py-6 space-y-6">
-        {/* List header */}
         <div>
           <p className="text-4xl mb-2">{list.emoji ?? "📋"}</p>
           <h1 className="text-2xl font-bold">{list.title}</h1>
@@ -71,7 +69,6 @@ export default async function PublicListPage({ params }: { params: Promise<Param
           )}
         </div>
 
-        {/* Restaurant cards */}
         <ul className="space-y-3">
           {restaurants.map(({ restaurant_id, restaurants: r }) => {
             if (!r) return null
@@ -96,7 +93,6 @@ export default async function PublicListPage({ params }: { params: Promise<Param
           })}
         </ul>
 
-        {/* CTA */}
         <div className="space-y-2 pt-2">
           <Link href="/">
             <Button className="w-full">Open in Foodracoon</Button>

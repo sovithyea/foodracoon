@@ -1,4 +1,20 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
+
+function loadEnv() {
+  try {
+    const raw = readFileSync(join(process.cwd(), '.env.local'), 'utf8')
+    for (const line of raw.split('\n')) {
+      const m = line.match(/^([A-Z0-9_]+)=(.*)$/)
+      if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim()
+    }
+  } catch {
+    // env may already be set in shell
+  }
+}
+
+loadEnv()
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

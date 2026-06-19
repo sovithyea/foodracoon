@@ -7,6 +7,7 @@ export type MapRestaurant = Pick<
   | "name"
   | "address"
   | "district"
+  | "google_place_id"
   | "latitude"
   | "longitude"
   | "cuisine_type"

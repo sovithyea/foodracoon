@@ -1,6 +1,5 @@
 "use client";
 
-import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { priceLabel } from "@/lib/restaurants";
 import { formatDistance } from "@/lib/geo";
@@ -42,13 +41,11 @@ export function SearchResultRow({
           {restaurant.district && (
             <span className="text-muted-foreground text-xs">{restaurant.district}</span>
           )}
-          {restaurant.google_rating != null &&
-            (restaurant.google_rating_count ?? 0) >= 5 && (
-            <span className="text-muted-foreground inline-flex items-center gap-0.5 text-xs">
-              <Star className="size-3 fill-amber-400 text-amber-400" />
-              {restaurant.google_rating.toFixed(1)}
+          {restaurant.google_rating != null && (
+            <span className="text-muted-foreground text-xs">
+              {restaurant.google_rating.toFixed(1)}★
               {restaurant.google_rating_count != null && (
-                <span>({restaurant.google_rating_count.toLocaleString()})</span>
+                <span> ({restaurant.google_rating_count.toLocaleString()})</span>
               )}
             </span>
           )}

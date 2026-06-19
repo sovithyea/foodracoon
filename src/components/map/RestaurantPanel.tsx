@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Star, Bookmark, ArrowUpRight, Navigation } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Bookmark, ArrowUpRight, Navigation, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import {
@@ -20,6 +20,7 @@ import { haversineDistance, formatDistance, walkTimeMinutes } from "@/lib/geo";
 import { staticMapUrl } from "@/lib/staticMap";
 import { cn } from "@/lib/utils";
 import { AddToListSheet } from "@/components/lists/AddToListSheet";
+import { createClient } from "@/lib/supabase/client";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
@@ -134,12 +135,12 @@ export function RestaurantPanel() {
   const selectedId = useMapStore((s) => s.selectedId);
   const restaurants = useMapStore((s) => s.restaurants);
   const select = useMapStore((s) => s.select);
-  const setRoute = useMapStore((s) => s.setRoute);
   const userLocation = useMapStore((s) => s.userLocation);
   const setUserLocation = useMapStore((s) => s.setUserLocation);
-  const [gettingDirections, setGettingDirections] = useState(false);
   const [locationPending, setLocationPending] = useState(false);
   const [addToListOpen, setAddToListOpen] = useState(false);
+  const [communityRating, setCommunityRating] = useState<{ avg: number; count: number } | null>(null);
+  const ratingFetchedFor = useRef<string | null>(null);
   const { resolvedTheme } = useTheme();
 
   const restaurant = restaurants.find((r) => r.id === selectedId) ?? null;
@@ -162,6 +163,25 @@ export function RestaurantPanel() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurant?.id]);
 
+  // Fetch community rating when panel opens for a new restaurant.
+  useEffect(() => {
+    if (!restaurant || ratingFetchedFor.current === restaurant.id) return;
+    ratingFetchedFor.current = restaurant.id;
+    setCommunityRating(null);
+    const supabase = createClient();
+    supabase
+      .from("user_restaurants")
+      .select("rating")
+      .eq("restaurant_id", restaurant.id)
+      .not("rating", "is", null)
+      .then(({ data }) => {
+        if (!data || data.length === 0) return;
+        const count = data.length;
+        const avg = data.reduce((sum, r) => sum + (r.rating ?? 0), 0) / count;
+        setCommunityRating({ avg, count });
+      });
+  }, [restaurant?.id]);
+
   const distance =
     userLocation && restaurant
       ? haversineDistance(
@@ -172,36 +192,6 @@ export function RestaurantPanel() {
         )
       : null;
   const walkMins = distance !== null ? walkTimeMinutes(distance) : null;
-
-  async function handleGetDirections() {
-    if (!restaurant) return;
-    setGettingDirections(true);
-    await new Promise<void>((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const { longitude: lng, latitude: lat } = pos.coords;
-          try {
-            const res = await fetch(
-              `/api/directions?from=${lng},${lat}&to=${restaurant.longitude},${restaurant.latitude}&profile=walking`,
-            );
-            if (!res.ok) throw new Error("No route");
-            const data = await res.json();
-            setRoute({ ...data, restaurantName: restaurant.name, restaurantId: restaurant.id, profile: "walking" });
-            setUserLocation([lng, lat]);
-            select(null);
-          } catch {
-            toast.error("Could not get directions");
-          }
-          resolve();
-        },
-        () => {
-          toast.error("Enable location to get directions");
-          resolve();
-        },
-      );
-    });
-    setGettingDirections(false);
-  }
 
   const isDark = resolvedTheme === "dark";
 
@@ -215,28 +205,38 @@ export function RestaurantPanel() {
             </SheetHeader>
 
             <div className="space-y-4 overflow-y-auto px-4 pb-6">
-              {/* Meta row: district, price, rating */}
+              {/* Meta row: district, price */}
               <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                 {restaurant.district && <span>{restaurant.district}</span>}
                 <span className="text-primary font-medium">
                   {priceLabel(restaurant.price_range)}
                 </span>
-                {restaurant.google_rating != null &&
-                  (restaurant.google_rating_count ?? 0) >= 5 && (
-                  <span className="inline-flex items-center gap-1">
-                    <Star className="size-3.5 fill-current text-amber-400" />
-                    {restaurant.google_rating.toFixed(1)}
-                    {restaurant.google_rating_count != null && (
-                      <span className="text-muted-foreground">
-                        ({restaurant.google_rating_count.toLocaleString()})
-                      </span>
-                    )}
-                  </span>
-                )}
               </div>
+
+              {/* Google rating */}
+              {restaurant.google_rating != null && (
+                <p className="text-sm text-muted-foreground">
+                  {restaurant.google_rating.toFixed(1)}★
+                  {restaurant.google_rating_count != null && (
+                    <span> ({restaurant.google_rating_count.toLocaleString()})</span>
+                  )}
+                </p>
+              )}
 
               {restaurant.address && (
                 <p className="text-muted-foreground text-sm">{restaurant.address}</p>
+              )}
+
+              {(restaurant.latitude != null && restaurant.longitude != null) && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}${restaurant.google_place_id ? `&destination_place_id=${restaurant.google_place_id}` : ""}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm hover:underline"
+                >
+                  <MapPin className="size-3.5 shrink-0" />
+                  Open in Google Maps
+                </a>
               )}
 
               {restaurant.cuisine_type.length > 0 && (
@@ -300,12 +300,6 @@ export function RestaurantPanel() {
                   {walkMins !== null && walkMins < 60 && (
                     <span>· ~{walkMins} min walk</span>
                   )}
-                  <button
-                    className="text-primary ml-auto text-sm font-medium"
-                    onClick={handleGetDirections}
-                  >
-                    Get directions →
-                  </button>
                 </div>
               )}
 
@@ -323,16 +317,6 @@ export function RestaurantPanel() {
                   <ArrowUpRight className="size-4" /> View full
                 </Button>
               </div>
-
-              <Button
-                variant="outline"
-                className="w-full"
-                disabled={gettingDirections}
-                onClick={handleGetDirections}
-              >
-                <Navigation className="size-4" />
-                {gettingDirections ? "Getting directions…" : "Get directions"}
-              </Button>
 
               {restaurant && (
                 <AddToListSheet

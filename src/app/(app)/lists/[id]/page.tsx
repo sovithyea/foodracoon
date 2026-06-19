@@ -82,7 +82,7 @@ export default function ListDetailPage() {
   function handleShare() {
     if (!list || !username) { toast.error("Sign in to share lists"); return }
     if (!list.is_public) { toast.error("Set list to public first"); return }
-    const url = `${window.location.origin}/lists/${username}/${list.slug}`
+    const url = `${window.location.origin}/u/${username}/${list.slug}`
     navigator.clipboard.writeText(url)
     toast.success("Link copied")
   }

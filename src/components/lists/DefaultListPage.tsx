@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Map } from "lucide-react"
+import { ArrowLeft, Map, Clock, CheckCircle, Heart, Utensils, type LucideIcon } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useMapStore } from "@/store/mapStore"
 import { priceLabel } from "@/lib/restaurants"
@@ -22,14 +22,14 @@ type Entry = {
   } | null
 }
 
-const CONFIG = {
-  want_to_try: { title: "Want to Try", emoji: "🕐", status: "want_to_try" as const },
-  visited:     { title: "Visited",     emoji: "✅", status: "visited" as const },
-  favourite:   { title: "Favourites",  emoji: "⭐", status: "favourite" as const },
+const CONFIG: Record<string, { title: string; Icon: LucideIcon; status: string }> = {
+  want_to_try: { title: "Want to Try", Icon: Clock,       status: "want_to_try" },
+  visited:     { title: "Visited",     Icon: CheckCircle, status: "visited" },
+  favourite:   { title: "Favourites",  Icon: Heart,       status: "favourite" },
 }
 
 export function DefaultListPage({ status }: { status: keyof typeof CONFIG }) {
-  const { title, emoji } = CONFIG[status]
+  const { title, Icon } = CONFIG[status]
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const select = useMapStore((s) => s.select)
@@ -61,7 +61,8 @@ export function DefaultListPage({ status }: { status: keyof typeof CONFIG }) {
         <Link href="/lists">
           <Button variant="ghost" size="icon-sm"><ArrowLeft className="size-4" /></Button>
         </Link>
-        <h1 className="text-base font-semibold">{emoji} {title}</h1>
+        <Icon className="size-4 text-muted-foreground" />
+        <h1 className="text-base font-semibold">{title}</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3">
@@ -73,7 +74,7 @@ export function DefaultListPage({ status }: { status: keyof typeof CONFIG }) {
 
         {!loading && entries.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-            <span className="text-4xl">{emoji}</span>
+            <Icon className="size-10 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground max-w-xs">
               Nothing here yet — save some restaurants from the map.
             </p>
@@ -96,7 +97,9 @@ export function DefaultListPage({ status }: { status: keyof typeof CONFIG }) {
                     {r.cover_photo_url ? (
                       <img src={r.cover_photo_url} alt="" className="size-12 rounded-md object-cover shrink-0" />
                     ) : (
-                      <div className="bg-muted size-12 rounded-md shrink-0 flex items-center justify-center text-xl">🍴</div>
+                      <div className="bg-muted size-12 rounded-md shrink-0 flex items-center justify-center">
+                        <Utensils className="size-5 text-muted-foreground/50" />
+                      </div>
                     )}
                     <div className="min-w-0">
                       <p className="font-medium text-sm truncate">{r.name}</p>

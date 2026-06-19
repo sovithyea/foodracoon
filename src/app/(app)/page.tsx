@@ -12,7 +12,7 @@ export default async function MapPage() {
     supabase
       .from("restaurants")
       .select(
-        "id, name, address, district, latitude, longitude, cuisine_type, tags, price_range, google_rating, google_rating_count, cover_photo_url",
+        "id, name, address, district, google_place_id, latitude, longitude, cuisine_type, tags, price_range, google_rating, google_rating_count, cover_photo_url",
       )
       .order("name"),
     user
