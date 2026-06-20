@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { Bookmark, ArrowUpRight, Navigation, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
@@ -11,7 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useMapStore, type RestaurantStatus } from "@/store/mapStore";
@@ -313,9 +314,12 @@ export function RestaurantPanel() {
                 >
                   <Bookmark className="size-4" /> Add to list
                 </Button>
-                <Button variant="outline" disabled title="Coming soon">
+                <Link
+                  href={`/restaurant/${restaurant.id}`}
+                  className={buttonVariants({ variant: "outline" })}
+                >
                   <ArrowUpRight className="size-4" /> View full
-                </Button>
+                </Link>
               </div>
 
               {restaurant && (

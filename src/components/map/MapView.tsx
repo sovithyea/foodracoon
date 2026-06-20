@@ -7,6 +7,7 @@ import { RestaurantMap } from "./RestaurantMap";
 import { FilterBar } from "./FilterBar";
 import { RestaurantPanel } from "./RestaurantPanel";
 import { DirectionsPanel } from "./DirectionsPanel";
+import { MapStylePicker } from "./MapStylePicker";
 
 export function MapView({
   restaurants,
@@ -25,6 +26,7 @@ export function MapView({
     <div className="relative h-full w-full">
       <RestaurantMap />
       <FilterBar />
+      <MapStylePicker />
       <RestaurantPanel />
       <DirectionsPanel />
     </div>

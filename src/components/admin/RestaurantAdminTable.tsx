@@ -2,8 +2,9 @@
 
 import { useState, useCallback, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { TagEditor } from "./TagEditor"
+import { ManualAddSheet } from "./ManualAddSheet"
 import { SUGGESTED_TAGS } from "@/lib/admin-tags"
 
 type Restaurant = {
@@ -45,6 +46,7 @@ export function RestaurantAdminTable({
   const [q, setQ] = useState(initialQ)
   const [restaurants, setRestaurants] = useState(initialRestaurants)
   const [searchTimer, setSearchTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
 
   const totalPages = Math.ceil(totalCount / pageSize)
   const allSuggestions = Array.from(new Set([...SUGGESTED_TAGS, ...existingTags])).sort()
@@ -83,12 +85,25 @@ export function RestaurantAdminTable({
 
   return (
     <div className="space-y-4">
+      <ManualAddSheet
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onAdded={() => router.refresh()}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Restaurants</h1>
           <p className="text-muted-foreground text-sm">{totalCount.toLocaleString()} total</p>
         </div>
+        <div className="flex items-center gap-2">
+        <button
+          onClick={() => setAddOpen(true)}
+          className="flex items-center gap-1.5 rounded-lg bg-[#D44C2A] px-3 py-2 text-sm font-medium text-white hover:bg-[#C04425] transition-colors"
+        >
+          <Plus className="size-4" /> Add restaurant
+        </button>
         <div className="relative w-64">
           <Search className="text-muted-foreground absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2" />
           <input
@@ -97,6 +112,7 @@ export function RestaurantAdminTable({
             placeholder="Search restaurants…"
             className="bg-card border-border w-full rounded-lg border py-2 pl-8 pr-3 text-sm outline-none focus:ring-1 focus:ring-primary"
           />
+        </div>
         </div>
       </div>
 

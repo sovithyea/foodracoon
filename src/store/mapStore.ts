@@ -53,6 +53,10 @@ export type MapState = {
   setRoute: (route: ActiveRoute) => void;
   clearRoute: () => void;
   setUserLocation: (coords: [number, number]) => void;
+
+  // Map style
+  mapStyleId: string | null;
+  setMapStyleId: (id: string | null) => void;
 };
 
 export const useMapStore = create<MapState>((set) => ({
@@ -111,6 +115,9 @@ export const useMapStore = create<MapState>((set) => ({
   setRoute: (route) => set({ activeRoute: route }),
   clearRoute: () => set({ activeRoute: null, userLocation: null }),
   setUserLocation: (coords) => set({ userLocation: coords }),
+
+  mapStyleId: null,
+  setMapStyleId: (id) => set({ mapStyleId: id }),
 }));
 
 export function filterRestaurants(s: MapState): MapRestaurant[] {

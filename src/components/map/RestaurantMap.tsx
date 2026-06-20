@@ -17,6 +17,15 @@ const SOURCE_ID = "restaurants";
 const LIGHT_STYLE = "mapbox://styles/mapbox/light-v11";
 const DARK_STYLE = "mapbox://styles/mapbox/dark-v11";
 
+export const MAP_STYLES = [
+  { id: "light",     label: "Light",   url: LIGHT_STYLE },
+  { id: "dark",      label: "Dark",    url: DARK_STYLE },
+  { id: "streets",   label: "Streets", url: "mapbox://styles/mapbox/streets-v12" },
+  { id: "satellite", label: "Hybrid",  url: "mapbox://styles/mapbox/satellite-streets-v12" },
+] as const;
+
+export type MapStyleId = typeof MAP_STYLES[number]["id"];
+
 type FeatureCollection = GeoJSON.FeatureCollection<GeoJSON.Point>;
 
 function toGeoJSON(
@@ -45,6 +54,11 @@ export function RestaurantMap() {
   const geojsonRef = useRef<FeatureCollection>({ type: "FeatureCollection", features: [] });
   const selectRef = useRef<(id: string | null) => void>(() => {});
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const selectedIdRef = useRef<string | null>(null);
+  const restaurantsRef = useRef<MapState["restaurants"]>([]);
+  const searchFilterIdsRef = useRef<Set<string> | null>(null);
+  const resolvedThemeRef = useRef<string | undefined>(undefined);
+  const mapStyleIdRef = useRef<string | null>(null);
 
   const { resolvedTheme } = useTheme();
   const select = useMapStore((s) => s.select);
@@ -58,6 +72,7 @@ export function RestaurantMap() {
   const userLocation = useMapStore((s) => s.userLocation);
   const selectedId = useMapStore((s) => s.selectedId);
   const searchFilterIds = useMapStore((s) => s.searchFilterIds);
+  const mapStyleId = useMapStore((s) => s.mapStyleId);
 
   const geojson = useMemo<FeatureCollection>(() => {
     let filtered = filterRestaurants({
@@ -72,6 +87,11 @@ export function RestaurantMap() {
   }, [restaurants, cuisines, prices, statusMap, searchFilterIds]);
 
   geojsonRef.current = geojson;
+  selectedIdRef.current = selectedId;
+  restaurantsRef.current = restaurants;
+  searchFilterIdsRef.current = searchFilterIds;
+  resolvedThemeRef.current = resolvedTheme;
+  mapStyleIdRef.current = mapStyleId;
 
   // Initialise the map once.
   useEffect(() => {
@@ -90,7 +110,10 @@ export function RestaurantMap() {
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "bottom-right");
 
     function setupRestaurantLayers() {
-      const dark = document.documentElement.classList.contains("dark");
+      const sid = mapStyleIdRef.current;
+      const dark = sid === "dark" || (!sid && document.documentElement.classList.contains("dark"));
+      const strokeColor = (sid === "satellite" || sid === "streets") ? "#ffffff"
+        : dark ? "#1C1712" : "#F5F0E8";
       map.addSource(SOURCE_ID, {
         type: "geojson",
         data: geojsonRef.current,
@@ -138,7 +161,7 @@ export function RestaurantMap() {
           ],
           "circle-radius": ["case", ["!=", ["get", "status"], null], 9, 7],
           "circle-stroke-width": 2,
-          "circle-stroke-color": dark ? "#1C1712" : "#F5F0E8",
+          "circle-stroke-color": strokeColor,
         },
       });
       loadedRef.current = true;
@@ -179,13 +202,23 @@ export function RestaurantMap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Switch Mapbox style when theme changes.
+  // Switch to a manually selected map style.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !loadedRef.current) return;
+    if (!map || !loadedRef.current || !mapStyleId) return;
+    const style = MAP_STYLES.find((s) => s.id === mapStyleId);
+    if (!style) return;
+    loadedRef.current = false;
+    map.setStyle(style.url);
+  }, [mapStyleId]);
+
+  // Switch Mapbox style when theme changes (skipped when user picked a style manually).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !loadedRef.current || mapStyleId) return;
     loadedRef.current = false;
     map.setStyle(resolvedTheme === "dark" ? DARK_STYLE : LIGHT_STYLE);
-  }, [resolvedTheme]);
+  }, [resolvedTheme, mapStyleId]);
 
   // Push filtered data to the source when it changes.
   useEffect(() => {

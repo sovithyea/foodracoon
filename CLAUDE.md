@@ -32,9 +32,11 @@ npx tsx scripts/import-places.ts  # import from Google Places API (needs GOOGLE_
 | Group | Path | Purpose |
 |-------|------|---------|
 | `(app)` | `/`, `/search`, `/lists`, `/feed`, `/profile` | App shell with Nav sidebar |
+| `(app)` | `/restaurant/[id]` | Server-rendered restaurant detail page — cover photo, tags, community reviews |
 | — | `/login` | Email/password sign-in (no auth wall — app works without login) |
+| — | `/admin`, `/admin/restaurants`, `/admin/suggestions` | Admin panel — requires `profiles.is_admin = true` |
 
-Routes `/lists`, `/feed`, `/search` are implemented stubs (no auth required, data is public). `/profile` redirects to `/login` if unauthenticated.
+Routes `/lists`, `/feed`, `/search` are implemented stubs (no auth required, data is public). `/profile` shows sign-in prompt if unauthenticated (does not redirect).
 
 ### Auth
 
@@ -58,6 +60,7 @@ Single store for all map state. Key fields:
 - `searchFilterIds: Set<string> | null` — when set, map shows only these restaurant IDs; `SearchFilterPill` shows a clear button
 - `searchQuery` — stored alongside `searchFilterIds` for the pill label
 - `activeRoute` / `userLocation` — directions state
+- `mapStyleId: string | null` — user-selected base map style (`"light"` / `"dark"` / `"streets"` / `"satellite"`); `null` means follow app theme
 
 `userLocation` is cached in the store so geolocation is only requested once (reused by both `RestaurantPanel` distance row and `/search` page result rows).
 
@@ -77,7 +80,7 @@ Opens as a bottom sheet (`Sheet` from shadcn) when `selectedId` is set. Contains
 3. Distance + walk time row — computed via `haversineDistance()` from `src/lib/geo.ts`, geolocation requested non-blocking on panel open
 4. Status toggle (Want to Try / Visited / Favourite) with toggle-off — `RatingSection` subcomponent
 5. 1–10 rating + review textarea (shown when status is visited or favourite)
-6. Disabled Recommend / View Full placeholders
+6. "View Full" link → `/restaurant/[id]`; Recommend placeholder (disabled)
 7. Get directions button — calls Mapbox Directions API via `/api/directions`, draws route on map
 
 ### Search — `src/app/(app)/search/page.tsx` + `src/app/api/search/route.ts`
@@ -98,6 +101,30 @@ Tapping a result calls `setSearchFilter(query, [id])` + `select(id)` + `router.p
 | `/api/restaurants/[id]/rate` | DELETE | Remove user's relationship with a restaurant |
 | `/api/search` | GET | Multi-bucket restaurant search, `?q=` param |
 | `/api/directions` | GET | Mapbox walking/driving directions, `?from=lng,lat&to=lng,lat&profile=` |
+| `/api/admin/restaurants/add` | POST | Admin-only: insert a new restaurant (service-role client) |
+| `/api/admin/restaurants/[id]` | PATCH | Admin-only: update tags/cuisine/district |
+
+### Supabase pagination
+
+PostgREST default `max_rows = 1000`. The home page bypasses this with a `count: "exact"` head query then parallel `.range()` fetches — see `src/app/(app)/page.tsx`. Never use `.limit()` to fetch > 1000 rows; it silently truncates.
+
+### Next.js 16 — dynamic route params
+
+`params` is a `Promise` in Next.js 16 App Router:
+```ts
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+}
+```
+
+### Button component gotcha
+
+`src/components/ui/button.tsx` wraps `@base-ui/react/button` which has **no `asChild` prop**. To make a styled Link, use `buttonVariants()` directly on the `<Link>`:
+```tsx
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+<Link href="/somewhere" className={buttonVariants({ variant: "outline" })}>Go</Link>
+```
 
 ### UI conventions
 

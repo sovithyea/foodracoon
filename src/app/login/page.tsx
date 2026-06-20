@@ -66,7 +66,9 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="text-destructive text-sm">{error}</p>
+            <p className="text-sm text-destructive">
+              {typeof error === 'string' ? error : 'Invalid email or password'}
+            </p>
           )}
 
           <Button type="submit" className="w-full" disabled={loading}>
