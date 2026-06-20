@@ -7,12 +7,14 @@ export type MapRestaurant = Pick<
   | "name"
   | "address"
   | "district"
+  | "google_place_id"
   | "latitude"
   | "longitude"
   | "cuisine_type"
   | "tags"
   | "price_range"
   | "google_rating"
+  | "google_rating_count"
   | "cover_photo_url"
 >;
 

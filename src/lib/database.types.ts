@@ -133,18 +133,21 @@ export type Database = {
           added_at: string
           list_id: string
           note: string | null
+          position: number
           restaurant_id: string
         }
         Insert: {
           added_at?: string
           list_id: string
           note?: string | null
+          position?: number
           restaurant_id: string
         }
         Update: {
           added_at?: string
           list_id?: string
           note?: string | null
+          position?: number
           restaurant_id?: string
         }
         Relationships: [
@@ -172,6 +175,7 @@ export type Database = {
           emoji: string | null
           id: string
           is_public: boolean
+          slug: string | null
           title: string
           user_id: string
         }
@@ -182,6 +186,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           is_public?: boolean
+          slug?: string | null
           title: string
           user_id: string
         }
@@ -192,6 +197,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           is_public?: boolean
+          slug?: string | null
           title?: string
           user_id?: string
         }
@@ -215,6 +221,7 @@ export type Database = {
           followers_count: number
           following_count: number
           id: string
+          is_admin: boolean | null
           username: string | null
         }
         Insert: {
@@ -226,6 +233,7 @@ export type Database = {
           followers_count?: number
           following_count?: number
           id: string
+          is_admin?: boolean | null
           username?: string | null
         }
         Update: {
@@ -237,6 +245,7 @@ export type Database = {
           followers_count?: number
           following_count?: number
           id?: string
+          is_admin?: boolean | null
           username?: string | null
         }
         Relationships: []
@@ -302,6 +311,7 @@ export type Database = {
           district: string | null
           google_place_id: string | null
           google_rating: number | null
+          google_rating_count: number | null
           id: string
           is_verified: boolean
           latitude: number
@@ -321,6 +331,7 @@ export type Database = {
           district?: string | null
           google_place_id?: string | null
           google_rating?: number | null
+          google_rating_count?: number | null
           id?: string
           is_verified?: boolean
           latitude: number
@@ -340,6 +351,7 @@ export type Database = {
           district?: string | null
           google_place_id?: string | null
           google_rating?: number | null
+          google_rating_count?: number | null
           id?: string
           is_verified?: boolean
           latitude?: number
