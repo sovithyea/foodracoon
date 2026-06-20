@@ -8,6 +8,7 @@ import { SearchResultRow } from "@/components/search/SearchResultRow";
 import { SearchSkeleton } from "@/components/search/SearchSkeleton";
 import { haversineDistance } from "@/lib/geo";
 import type { SearchResponse, SearchResult } from "@/lib/search";
+import { SuggestSheet } from "@/components/search/SuggestSheet";
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -140,9 +141,13 @@ export default function SearchPage() {
         )}
 
         {!loading && !error && query.length >= 2 && results && !hasResults && (
-          <p className="text-muted-foreground px-4 py-8 text-center text-sm">
-            No results for &ldquo;{query}&rdquo;
-          </p>
+          <div className="px-4 py-8 text-center">
+            <p className="text-muted-foreground mb-4 text-sm">
+              No results for &ldquo;{query}&rdquo;
+            </p>
+            <p className="text-muted-foreground mb-3 text-sm">Can&apos;t find what you&apos;re looking for?</p>
+            <SuggestSheet initialName={query} triggerLabel="+ Suggest a restaurant" />
+          </div>
         )}
 
         {!loading && !error && hasResults && (
@@ -215,6 +220,11 @@ export default function SearchPage() {
                 </button>
               </div>
             )}
+
+            <div className="border-t px-4 py-5 text-center">
+              <p className="text-muted-foreground mb-3 text-sm">Missing a restaurant?</p>
+              <SuggestSheet triggerLabel="+ Suggest it" />
+            </div>
           </>
         )}
       </div>

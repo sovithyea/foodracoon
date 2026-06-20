@@ -1,8 +1,16 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createAdminClient } from "@supabase/supabase-js"
+import type { Database } from "@/lib/database.types"
 import { RestaurantAdminTable } from "@/components/admin/RestaurantAdminTable"
+import { AdminTabNav } from "@/components/admin/AdminTabNav"
 
 const PAGE_SIZE = 40
+
+const adminDb = createAdminClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+)
 
 export default async function AdminRestaurantsPage({
   searchParams,
@@ -41,14 +49,22 @@ export default async function AdminRestaurantsPage({
     new Set((restaurants ?? []).flatMap((r) => [...r.tags, ...r.cuisine_type]))
   ).sort()
 
+  const { count: pendingCount } = await adminDb
+    .from("suggestions")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending")
+
   return (
-    <RestaurantAdminTable
-      initialRestaurants={restaurants ?? []}
-      totalCount={count ?? 0}
-      currentPage={pageNum}
-      pageSize={PAGE_SIZE}
-      initialQ={q}
-      existingTags={existingTags}
-    />
+    <>
+      <AdminTabNav pendingCount={pendingCount ?? 0} />
+      <RestaurantAdminTable
+        initialRestaurants={restaurants ?? []}
+        totalCount={count ?? 0}
+        currentPage={pageNum}
+        pageSize={PAGE_SIZE}
+        initialQ={q}
+        existingTags={existingTags}
+      />
+    </>
   )
 }

@@ -133,21 +133,21 @@ export type Database = {
           added_at: string
           list_id: string
           note: string | null
-          position: number
+          position: number | null
           restaurant_id: string
         }
         Insert: {
           added_at?: string
           list_id: string
           note?: string | null
-          position?: number
+          position?: number | null
           restaurant_id: string
         }
         Update: {
           added_at?: string
           list_id?: string
           note?: string | null
-          position?: number
+          position?: number | null
           restaurant_id?: string
         }
         Relationships: [
@@ -364,6 +364,57 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      suggestions: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          cuisine: string | null
+          id: string
+          imported_restaurant_id: string | null
+          name: string
+          notes: string | null
+          status: string | null
+          submitted_by: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          cuisine?: string | null
+          id?: string
+          imported_restaurant_id?: string | null
+          name: string
+          notes?: string | null
+          status?: string | null
+          submitted_by?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          cuisine?: string | null
+          id?: string
+          imported_restaurant_id?: string | null
+          name?: string
+          notes?: string | null
+          status?: string | null
+          submitted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suggestions_imported_restaurant_id_fkey"
+            columns: ["imported_restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suggestions_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_restaurants: {
         Row: {
