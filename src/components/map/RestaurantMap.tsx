@@ -73,18 +73,21 @@ export function RestaurantMap() {
   const selectedId = useMapStore((s) => s.selectedId);
   const searchFilterIds = useMapStore((s) => s.searchFilterIds);
   const mapStyleId = useMapStore((s) => s.mapStyleId);
+  const nearMe = useMapStore((s) => s.nearMe);
 
   const geojson = useMemo<FeatureCollection>(() => {
     let filtered = filterRestaurants({
       restaurants,
       cuisines,
       prices,
+      nearMe,
+      userLocation,
     } as MapState);
     if (searchFilterIds) {
       filtered = filtered.filter((r) => searchFilterIds.has(r.id));
     }
     return toGeoJSON(filtered, statusMap);
-  }, [restaurants, cuisines, prices, statusMap, searchFilterIds]);
+  }, [restaurants, cuisines, prices, nearMe, userLocation, statusMap, searchFilterIds]);
 
   geojsonRef.current = geojson;
   selectedIdRef.current = selectedId;
