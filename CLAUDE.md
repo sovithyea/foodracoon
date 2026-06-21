@@ -36,7 +36,7 @@ npx tsx scripts/import-places.ts  # import from Google Places API (needs GOOGLE_
 | — | `/login` | Email/password sign-in (no auth wall — app works without login) |
 | — | `/admin`, `/admin/restaurants`, `/admin/suggestions` | Admin panel — requires `profiles.is_admin = true` |
 
-Routes `/lists`, `/feed`, `/search` are implemented stubs (no auth required, data is public). `/profile` shows sign-in prompt if unauthenticated (does not redirect).
+`/search` is fully implemented (public data, no auth). `/lists` is a real feature (see below). `/feed` is still a stub. `/profile` shows a sign-in prompt if unauthenticated (does not redirect).
 
 ### Auth
 
@@ -53,7 +53,8 @@ Auth is **optional**. `proxy.ts` (the middleware — not `middleware.ts`) calls 
 
 Single store for all map state. Key fields:
 
-- `restaurants` — full list, loaded once on home page mount via `MapView`
+- `restaurants` — full list, fetched client-side by `MapView` from `GET /api/restaurants` and cached (see below)
+- `lastFetched: number | null` + `RESTAURANTS_TTL` (30 min) — `MapView` skips the fetch if cached restaurants are still fresh. `setRestaurants()` sets the list + stamps `lastFetched`; `setStatuses()` sets `statusMap` only. (There is no longer a combined `init` action.)
 - `statusMap: Map<string, RestaurantStatus>` — per-restaurant user status (`want_to_try` / `visited` / `favourite`). Replaces the old `savedIds` set.
 - `selectedId` — opens `RestaurantPanel` when set; triggers `flyTo` in `RestaurantMap`
 - `cuisines` / `prices` — active filter sets; `filterRestaurants(state)` derives the filtered list
@@ -66,7 +67,9 @@ Single store for all map state. Key fields:
 
 ### Map rendering — `src/components/map/`
 
-`MapView` initialises the store then renders `RestaurantMap` + `FilterBar` + `RestaurantPanel` + `DirectionsPanel` + `SearchFilterPill` as absolute overlays on top of the Mapbox canvas.
+`MapView` receives only `statuses` (server-fetched, per-user) as a prop; it applies them immediately, then fetches `restaurants` client-side from `GET /api/restaurants` unless the Zustand cache is still fresh (`lastFetched` < 30 min). The store is the single source of truth — `RestaurantMap` reads `restaurants`/`statusMap` reactively and repaints, so updating the store after the fetch is enough. `MapView` renders `RestaurantMap` + `FilterBar` + `MapStylePicker` + `RestaurantPanel` + `DirectionsPanel` as absolute overlays on top of the Mapbox canvas (`SearchFilterPill` lives inside `RestaurantMap`).
+
+The map page (`src/app/(app)/page.tsx`) is a server component that fetches **only** the small, auth-dependent `user_restaurants` status set — it no longer queries restaurants. The heavy restaurant payload (~3.9MB) is fetched client-side so navigation back to `/` within the TTL skips the network entirely.
 
 `RestaurantMap` owns the Mapbox GL instance in a ref. Style reloads (dark/light theme switch) re-add all layers via `style.load`. GeoJSON source is updated via `source.setData()` on every filter/status/search change — never destroy/recreate the map.
 
@@ -87,7 +90,13 @@ Opens as a bottom sheet (`Sheet` from shadcn) when `selectedId` is set. Contains
 
 Search page debounces 300ms then calls `GET /api/search?q=`. The API runs four parallel Supabase queries: name ilike, district ilike, all-restaurants filtered in JS for cuisine/tag arrays, and dish name ilike (two-step: dishes → restaurants). Results are deduplicated (name > dish > cuisine > district priority) and returned as four bucketed arrays.
 
-Tapping a result calls `setSearchFilter(query, [id])` + `select(id)` + `router.push("/")` — map flies to the pin, panel opens, all other markers hidden.
+Tapping a result calls `setSearchFilter(query, [id])` + `select(id)` + `router.push("/")` — map flies to the pin, panel opens, all other markers hidden. Recent searches are persisted to `localStorage` (`foodracoon:recent-searches`, max 8) and shown in the empty state.
+
+### Lists — `src/app/(app)/lists/` + `src/store/listsStore.ts`
+
+Three fixed default lists (`want-to-try` / `visited` / `favourites`, derived from `user_restaurants` status) plus user-created custom lists (`lists` + `list_restaurants` tables). `listsStore` (Zustand) holds custom lists for optimistic add/update/remove, but **the DB is the source of truth** — `/lists` re-fetches from `GET /api/lists` on every mount (do not gate the fetch on a cached flag). Types in `src/lib/lists.ts`.
+
+When joining `list_restaurants` → `restaurants`, PostgREST nests the related row under the **table name** (`restaurants`); the UI (`ListRestaurantCard`, `ListRestaurantDetail`) expects it under `restaurant` (singular), so the API route remaps the key. `CreateListSheet` is shared between create and edit (pass `editList`); it syncs its form fields to `editList` on open so stale values aren't shown after an external change.
 
 ### Key DB tables
 
@@ -97,16 +106,22 @@ Tapping a result calls `setSearchFilter(query, [id])` + `select(id)` + `router.p
 
 | Route | Method | Purpose |
 |-------|--------|---------|
+| `/api/restaurants` | GET | All restaurants, paginated past the 1000-row cap — feeds the client-side map cache |
 | `/api/restaurants/[id]/rate` | POST | Upsert `user_restaurants` row — accepts `{ status, rating?, review? }` |
 | `/api/restaurants/[id]/rate` | DELETE | Remove user's relationship with a restaurant |
 | `/api/search` | GET | Multi-bucket restaurant search, `?q=` param |
 | `/api/directions` | GET | Mapbox walking/driving directions, `?from=lng,lat&to=lng,lat&profile=` |
+| `/api/lists` | GET/POST | List user's lists (with restaurant counts) / create a list |
+| `/api/lists/[id]` | PUT/DELETE | Update (title/emoji/description/`is_public`, re-slugs on title change) / delete a list |
+| `/api/lists/[id]/restaurants` | GET/POST | List members (joins `restaurants`, adds `user_rating`) / add a restaurant |
+| `/api/lists/[id]/restaurants/[rid]` | DELETE | Remove a restaurant from a list |
+| `/api/lists/user/[username]/[slug]` | GET | Public list by owner username + slug (share links) |
 | `/api/admin/restaurants/add` | POST | Admin-only: insert a new restaurant (service-role client) |
 | `/api/admin/restaurants/[id]` | PATCH | Admin-only: update tags/cuisine/district |
 
 ### Supabase pagination
 
-PostgREST default `max_rows = 1000`. The home page bypasses this with a `count: "exact"` head query then parallel `.range()` fetches — see `src/app/(app)/page.tsx`. Never use `.limit()` to fetch > 1000 rows; it silently truncates.
+PostgREST default `max_rows = 1000`. `GET /api/restaurants` bypasses this with a `count: "exact"` head query then parallel `.range()` fetches. Never use `.limit()` to fetch > 1000 rows; it silently truncates. Note: this full payload exceeds Next.js's 2MB `unstable_cache` limit, so it cannot be wrapped in the data cache — caching is done client-side in Zustand instead.
 
 ### Next.js 16 — dynamic route params
 
@@ -125,6 +140,10 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 <Link href="/somewhere" className={buttonVariants({ variant: "outline" })}>Go</Link>
 ```
+
+### base-ui Menu gotcha
+
+`DropdownMenu*` (`src/components/ui/dropdown-menu.tsx`) wraps `@base-ui/react/menu`, **not** Radix. `DropdownMenuItem` fires **`onClick`**, not `onSelect` — `onSelect` is silently ignored and the action never runs (`closeOnClick` defaults true). The `DropdownMenuTrigger` takes its button via the `render` prop, not `asChild`.
 
 ### UI conventions
 
