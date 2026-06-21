@@ -320,6 +320,7 @@ export type Database = {
           opening_hours: Json | null
           phone: string | null
           price_range: number | null
+          saves_count: number
           tags: string[]
           website: string | null
         }
@@ -340,6 +341,7 @@ export type Database = {
           opening_hours?: Json | null
           phone?: string | null
           price_range?: number | null
+          saves_count?: number
           tags?: string[]
           website?: string | null
         }
@@ -360,6 +362,7 @@ export type Database = {
           opening_hours?: Json | null
           phone?: string | null
           price_range?: number | null
+          saves_count?: number
           tags?: string[]
           website?: string | null
         }

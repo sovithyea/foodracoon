@@ -18,6 +18,7 @@ export type MapRestaurant = Pick<
   | "cover_photo_url"
 > & {
   opening_hours: { weekday_text: string[] } | null;
+  saves_count: number;
 };
 
 export const PHNOM_PENH_CENTER: [number, number] = [104.9282, 11.5564]; // [lng, lat]

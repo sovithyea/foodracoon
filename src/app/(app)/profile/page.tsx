@@ -1,23 +1,66 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
+
+// Deterministic avatar background colour from display name
+const AVATAR_COLORS = ["#D44C2A", "#3A7A5C", "#2C5A8A", "#8A4A2C"];
+function avatarColor(name: string) {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+
+function relativeDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86_400_000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7)  return `${days} days ago`;
+  if (days < 14) return "1 week ago";
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+  return `${Math.floor(days / 30)} months ago`;
+}
 
 export default async function ProfilePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-lg font-medium">Sign in to see your profile</p>
-        <Link
-          href="/login"
-          className="text-sm text-[#D44C2A] underline underline-offset-2"
-        >
-          Go to sign in
-        </Link>
+      <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+        <div className="w-full max-w-xs space-y-6">
+          <div className="space-y-2">
+            <p className="text-3xl font-extrabold tracking-tight text-[#D44C2A]">foodracoon</p>
+            <p className="text-sm text-[#8C7E72]">Track the restaurants you love in Phnom Penh</p>
+          </div>
+          <div className="rounded-2xl border border-[#D4C8B4] bg-[#EDE6D8] p-5 text-left space-y-3">
+            {[
+              { icon: "📍", text: "Save places you want to try" },
+              { icon: "✅", text: "Log restaurants you've visited" },
+              { icon: "📋", text: "Build and share custom lists" },
+            ].map(({ icon, text }) => (
+              <div key={text} className="flex items-center gap-3 text-sm text-[#2C2420]">
+                <span className="text-base leading-none">{icon}</span>
+                {text}
+              </div>
+            ))}
+          </div>
+          <div className="space-y-2.5">
+            <Link
+              href="/login"
+              className="flex w-full items-center justify-center rounded-xl bg-[#D44C2A] px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(212,76,42,0.25)] transition-all hover:bg-[#B83D1E] active:scale-95"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="flex w-full items-center justify-center rounded-xl border border-[#D4C8B4] px-4 py-3 text-sm font-semibold text-[#2C2420] transition-all hover:bg-[#EDE6D8] active:scale-95"
+            >
+              Create account
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -50,55 +93,61 @@ export default async function ProfilePage() {
       .limit(5),
   ]);
 
-  const visitedCount =
-    statusRows?.filter((r) => r.status === "visited").length ?? 0;
-  const wantToTryCount =
-    statusRows?.filter((r) => r.status === "want_to_try").length ?? 0;
-  const ratings =
-    statusRows?.flatMap((r) => (r.rating != null ? [r.rating] : [])) ?? [];
-  const avgRating =
+  const visitedCount   = statusRows?.filter((r) => r.status === "visited").length ?? 0;
+  const wantToTryCount = statusRows?.filter((r) => r.status === "want_to_try").length ?? 0;
+  const ratings        = statusRows?.flatMap((r) => (r.rating != null ? [r.rating] : [])) ?? [];
+  const avgRating      =
     ratings.length > 0
       ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
       : "—";
 
-  const initials = (profile?.display_name ?? profile?.username ?? "?")
-    .slice(0, 2)
-    .toUpperCase();
+  const displayName = profile?.display_name ?? "Foodracoon user";
+  const initials    = displayName.slice(0, 2).toUpperCase();
+  const color       = avatarColor(displayName);
+
+  // Server action — defined once, reused in both sign-out forms
+  async function signOut() {
+    "use server";
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect("/login");
+  }
 
   return (
     <div className="mx-auto h-full max-w-lg overflow-y-auto px-6 py-10 pb-20 md:pb-10">
       <div className="flex flex-col items-center gap-3 text-center">
         <div
-          className="flex size-20 items-center justify-center rounded-full text-2xl font-semibold text-white"
-          style={{ backgroundColor: "#D44C2A" }}
+          className="flex size-20 items-center justify-center rounded-full text-2xl font-bold text-white"
+          style={{
+            backgroundColor: color,
+            boxShadow: `0 0 0 3.5px #EDE6D8, 0 0 0 6px ${color}`,
+          }}
         >
           {initials}
         </div>
         <div>
-          <h1 className="text-xl font-semibold">
-            {profile?.display_name ?? "Foodracoon user"}
-          </h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-xl font-semibold text-[#2C2420]">{displayName}</h1>
+          <p className="text-sm text-[#8C7E72]">
             @{profile?.username ?? "—"} · {profile?.city ?? "Phnom Penh"}
           </p>
         </div>
-        {profile?.bio && <p className="text-sm">{profile.bio}</p>}
+        {profile?.bio && <p className="text-sm text-[#5A4E48]">{profile.bio}</p>}
       </div>
 
       <div className="mt-8 grid grid-cols-3 gap-3 text-center">
-        <StatCard label="Visited" value={visitedCount} />
+        <StatCard label="Visited"     value={visitedCount} />
         <StatCard label="Want to Try" value={wantToTryCount} />
-        <StatCard label="Avg Rating" value={avgRating} />
+        <StatCard label="Avg Rating"  value={avgRating} highlight />
       </div>
 
-      <div className="mt-3 rounded-lg border bg-card p-4 text-center">
-        <div className="text-2xl font-semibold">{listsCount ?? 0}</div>
-        <div className="text-muted-foreground text-xs">Lists</div>
+      <div className="mt-3 rounded-xl border border-[#D4C8B4] bg-[#EDE6D8] p-4 text-center">
+        <div className="text-2xl font-semibold text-[#2C2420]">{listsCount ?? 0}</div>
+        <div className="text-xs text-[#8C7E72]">Lists</div>
       </div>
 
       {recentRatings && recentRatings.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-wide">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8C7E72]">
             Recent Ratings
           </h2>
           <div className="flex flex-col gap-2">
@@ -106,19 +155,27 @@ export default async function ProfilePage() {
               const restaurant = Array.isArray(row.restaurants)
                 ? row.restaurants[0]
                 : row.restaurants;
-              const date = row.visited_at ?? row.updated_at?.slice(0, 10);
+              const date  = row.visited_at ?? row.updated_at;
+              const score = row.rating as number;
               return (
                 <div
                   key={i}
-                  className="bg-card flex items-center justify-between rounded-lg border px-4 py-3"
+                  className="flex items-center justify-between rounded-xl border border-[#D4C8B4] bg-[#EDE6D8] px-4 py-3"
                 >
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-[#2C2420]">
                     {restaurant?.name ?? "Unknown"}
                   </span>
-                  <div className="text-muted-foreground flex items-center gap-3 text-sm">
-                    {date && <span>{date}</span>}
-                    <span className="text-foreground font-semibold">
-                      {row.rating}/10
+                  <div className="flex items-center gap-3 text-sm text-[#8C7E72]">
+                    {date && <span>{relativeDate(date)}</span>}
+                    <span
+                      className={cn(
+                        "rounded-full px-2.5 py-0.5 text-xs font-bold",
+                        score >= 8.5
+                          ? "bg-[#D44C2A] text-white"
+                          : "border border-[#D4C8B4] bg-[#F5F0E8] text-[#2C2420]",
+                      )}
+                    >
+                      {score}/10
                     </span>
                   </div>
                 </div>
@@ -128,18 +185,10 @@ export default async function ProfilePage() {
         </div>
       )}
 
-      <form
-        action={async () => {
-          "use server";
-          const supabase = await createClient();
-          await supabase.auth.signOut();
-          redirect("/login");
-        }}
-        className="mt-10"
-      >
+      <form action={signOut} className="mt-10">
         <button
           type="submit"
-          className="text-muted-foreground hover:text-destructive w-full py-2 text-sm transition-colors"
+          className="w-full py-2 text-sm text-[#8C7E72] transition-colors hover:text-[#D44C2A]"
         >
           Sign out
         </button>
@@ -148,11 +197,21 @@ export default async function ProfilePage() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number | string }) {
+function StatCard({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: number | string;
+  highlight?: boolean;
+}) {
   return (
-    <div className="bg-card rounded-lg border p-4 text-center">
-      <div className="text-2xl font-semibold">{value}</div>
-      <div className="text-muted-foreground text-xs">{label}</div>
+    <div className="rounded-xl border border-[#D4C8B4] bg-[#EDE6D8] p-4 text-center">
+      <div className={cn("text-2xl font-semibold", highlight ? "text-[#D44C2A]" : "text-[#2C2420]")}>
+        {value}
+      </div>
+      <div className="text-xs text-[#8C7E72]">{label}</div>
     </div>
   );
 }

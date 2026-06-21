@@ -5,33 +5,63 @@ import { useRouter } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useMapStore } from "@/store/mapStore";
 import { FilterSheet } from "./FilterSheet";
+import { cn } from "@/lib/utils";
 
 export function FilterBar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
   const cuisineCount = useMapStore((s) => s.cuisines.size);
-  const priceCount = useMapStore((s) => s.prices.size);
-  const nearMe = useMapStore((s) => s.nearMe);
-  const openNow = useMapStore((s) => s.openNow);
-  const activeCount = cuisineCount + priceCount + (nearMe ? 1 : 0) + (openNow ? 1 : 0);
+  const priceCount   = useMapStore((s) => s.prices.size);
+  const nearMe       = useMapStore((s) => s.nearMe);
+  const openNow      = useMapStore((s) => s.openNow);
+  const activeCount  = cuisineCount + priceCount + (nearMe ? 1 : 0) + (openNow ? 1 : 0);
+  const panelOpen    = useMapStore((s) => !!s.selectedId);
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-10 p-3">
+    <div className={cn(
+      "pointer-events-none absolute inset-x-0 top-0 z-20 p-3 transition-all duration-300",
+      panelOpen && "md:pr-[392px]",
+    )}>
       <div className="pointer-events-auto flex items-center gap-2">
+
+        {/* Search pill */}
         <button
           onClick={() => router.push("/search")}
-          className="bg-card/90 text-muted-foreground hover:bg-card flex w-full items-center gap-2 rounded-full border px-4 py-2 text-sm shadow-sm backdrop-blur transition-colors"
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-full px-4 py-2.5 text-sm",
+            "border border-[#D4C8B4]/60 bg-[#F5F0E8]/93 text-[#8C7E72]",
+            "shadow-[0_4px_20px_rgba(0,0,0,.13),0_1px_4px_rgba(0,0,0,.08)]",
+            "backdrop-blur-[10px] transition-all",
+            "hover:bg-[#F5F0E8] hover:shadow-[0_6px_24px_rgba(0,0,0,.16)]",
+          )}
         >
-          <Search className="size-4 shrink-0" />
-          Search restaurants...
+          <Search className="size-[15px] shrink-0 text-[#8C7E72]" />
+          <span>Find a restaurant…</span>
         </button>
-        <button
-          onClick={() => setOpen(true)}
-          className="bg-card/90 text-foreground hover:bg-card inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium shadow-sm backdrop-blur transition-colors"
-        >
-          <SlidersHorizontal className="size-4" />
-          Filters{activeCount > 0 ? ` (${activeCount})` : ""}
-        </button>
+
+        {/* Filter pill — badge shows active filter count */}
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setOpen(true)}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold",
+              "border border-[#D4C8B4]/60 bg-[#F5F0E8]/93 text-[#2C2420]",
+              "shadow-[0_4px_20px_rgba(0,0,0,.13),0_1px_4px_rgba(0,0,0,.08)]",
+              "backdrop-blur-[10px] transition-all",
+              "hover:bg-[#F5F0E8]",
+            )}
+          >
+            <SlidersHorizontal className="size-[14px]" />
+            Filters
+          </button>
+
+          {activeCount > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 flex size-[18px] items-center justify-center rounded-full border-2 border-[#F5F0E8] bg-[#D44C2A] text-[9px] font-bold leading-none text-white">
+              {activeCount}
+            </span>
+          )}
+        </div>
       </div>
 
       <FilterSheet open={open} onOpenChange={setOpen} />

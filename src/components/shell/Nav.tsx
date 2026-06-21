@@ -2,50 +2,63 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
-import { Map, Search, ListChecks, Newspaper, User, Sun, Moon, Shield } from "lucide-react";
+import { Map, Search, ListChecks, Newspaper, User, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const ITEMS = [
-  { href: "/", label: "Map", icon: Map },
-  { href: "/search", label: "Search", icon: Search },
-  { href: "/lists", label: "Lists", icon: ListChecks },
-  { href: "/feed", label: "Feed", icon: Newspaper },
+  { href: "/",        label: "Map",     icon: Map },
+  { href: "/search",  label: "Search",  icon: Search },
+  { href: "/lists",   label: "Lists",   icon: ListChecks },
+  { href: "/feed",    label: "Feed",    icon: Newspaper },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
+const AVATAR_COLORS = ["#D44C2A", "#3A7A5C", "#2C5A8A", "#8A4A2C"];
+function avatarColor(name: string) {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+type UserProfile = {
+  username: string | null;
+  display_name: string | null;
+  is_admin: boolean | null;
+};
+
 export function Nav() {
   const pathname = usePathname();
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
   useEffect(() => {
-    setMounted(true);
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
       supabase
         .from("profiles")
-        .select("is_admin")
+        .select("username, display_name, is_admin")
         .eq("id", user.id)
         .single()
-        .then(({ data }) => setIsAdmin(data?.is_admin ?? false));
+        .then(({ data }) => { if (data) setProfile(data); });
     });
   }, []);
 
+  const displayName = profile?.display_name ?? profile?.username ?? "";
+  const initials = displayName.slice(0, 2).toUpperCase();
+  const color = displayName ? avatarColor(displayName) : "#8C7E72";
+
   return (
     <>
-      {/* Desktop sidebar */}
-      <nav className="bg-background border-border hidden w-48 shrink-0 flex-col border-r p-4 md:flex">
+      {/* ── Desktop sidebar ── */}
+      <nav className="hidden w-48 shrink-0 flex-col border-r border-[#D4C8B4] bg-[#F5F0E8] p-3 md:flex">
         <Link
           href="/"
-          className="mb-6 px-2 text-2xl font-bold tracking-tight text-[#D44C2A]"
+          className="mb-5 px-3 text-2xl font-extrabold tracking-tight text-[#D44C2A]"
         >
           foodracoon
         </Link>
-        <ul className="flex flex-1 flex-col gap-1">
+
+        <ul className="flex flex-1 flex-col gap-0.5">
           {ITEMS.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
             return (
@@ -53,52 +66,95 @@ export function Nav() {
                 <Link
                   href={href}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                     active
-                      ? "bg-accent text-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      ? "bg-[#F5E8E4] text-[#D44C2A]"
+                      : "text-[#8C7E72] hover:bg-[#EDE6D8] hover:text-[#2C2420]",
                   )}
                 >
-                  <Icon className="size-4" />
+                  <Icon className="size-4 shrink-0" />
                   {label}
                 </Link>
               </li>
             );
           })}
         </ul>
-        {isAdmin && (
-          <Link
-            href="/admin"
-            className="text-muted-foreground hover:text-foreground flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors"
-          >
-            <Shield className="size-4" />
-            Admin
-          </Link>
-        )}
-        <button
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          className="text-muted-foreground hover:text-foreground flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium"
-        >
-          {mounted && resolvedTheme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          {mounted && resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
-        </button>
+
+        <div className="mt-2 flex flex-col gap-0.5 border-t border-[#EDE6D8] pt-2">
+          {profile?.is_admin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[#8C7E72] transition-colors hover:bg-[#EDE6D8] hover:text-[#2C2420]"
+            >
+              <Shield className="size-4" />
+              Admin
+            </Link>
+          )}
+
+          {/* User avatar + @username */}
+          {profile ? (
+            <Link
+              href="/profile"
+              className="flex items-center gap-2.5 rounded-xl px-3 py-2 transition-colors hover:bg-[#EDE6D8]"
+            >
+              <div
+                className="flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                style={{ backgroundColor: color }}
+              >
+                {initials}
+              </div>
+              <span className="truncate text-xs font-medium text-[#2C2420]">
+                @{profile.username ?? "me"}
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[#8C7E72] transition-colors hover:bg-[#EDE6D8] hover:text-[#2C2420]"
+            >
+              <User className="size-4 shrink-0" />
+              Sign in
+            </Link>
+          )}
+        </div>
       </nav>
 
-      {/* Mobile bottom nav */}
-      <nav className="bg-background border-border fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t md:hidden">
+      {/* ── Mobile bottom nav ── */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-20 flex items-start border-t border-[#D4C8B4] bg-[#F5F0E8] pt-2 md:hidden"
+        style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}
+      >
         {ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
             <Link
               key={href}
               href={href}
-              className={cn(
-                "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px]",
-                active ? "text-foreground" : "text-muted-foreground",
-              )}
+              className="flex flex-1 flex-col items-center gap-1"
             >
-              <Icon className="size-5" />
-              {label}
+              <span
+                className={cn(
+                  "flex h-7 w-12 items-center justify-center rounded-full transition-all duration-200",
+                  active
+                    ? "bg-[#D44C2A] shadow-[0_2px_8px_rgba(212,76,42,0.35)]"
+                    : "hover:bg-[#EDE6D8]",
+                )}
+              >
+                <Icon
+                  className={cn(
+                    "size-[18px] transition-colors",
+                    active ? "text-white" : "text-[#8C7E72]",
+                  )}
+                />
+              </span>
+              <span
+                className={cn(
+                  "text-[10px]",
+                  active ? "font-bold text-[#D44C2A]" : "font-medium text-[#8C7E72]",
+                )}
+              >
+                {label}
+              </span>
             </Link>
           );
         })}

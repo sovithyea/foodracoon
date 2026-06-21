@@ -1,11 +1,28 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Star } from "lucide-react";
+import { ArrowLeft, Navigation } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Badge } from "@/components/ui/badge";
 import { priceLabel } from "@/lib/restaurants";
-import { isOpenNow, getHoursStatus } from "@/lib/openNow";
+import { getHoursStatus } from "@/lib/openNow";
 import { cn } from "@/lib/utils";
+import { RatingSection } from "@/components/restaurant/RatingSection";
+
+const HERO_GRADIENTS = [
+  "linear-gradient(130deg, #9E5230 0%, #C47040 35%, #D58860 65%, #E0A07A 100%)",
+  "linear-gradient(130deg, #2C5A38 0%, #3A7A5C 50%, #4A9A7C 100%)",
+  "linear-gradient(130deg, #2C3A5A 0%, #3A5A8A 50%, #4A6AAA 100%)",
+  "linear-gradient(130deg, #5A2C2A 0%, #8A3A38 50%, #AA5A58 100%)",
+];
+function heroGradient(name: string) {
+  return HERO_GRADIENTS[name.charCodeAt(0) % HERO_GRADIENTS.length];
+}
+
+const AVATAR_COLORS = ["#D44C2A", "#3A7A5C", "#2C5A8A", "#8A4A2C"];
+function avatarColor(name: string) {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export default async function RestaurantPage({
   params,
@@ -31,10 +48,7 @@ export default async function RestaurantPage({
   const ratingsWithValue = reviews?.filter((r) => r.rating != null) ?? [];
   const avg =
     ratingsWithValue.length > 0
-      ? (
-          ratingsWithValue.reduce((s, r) => s + (r.rating ?? 0), 0) /
-          ratingsWithValue.length
-        ).toFixed(1)
+      ? (ratingsWithValue.reduce((s, r) => s + (r.rating ?? 0), 0) / ratingsWithValue.length).toFixed(1)
       : null;
 
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}${restaurant.google_place_id ? `&destination_place_id=${restaurant.google_place_id}` : ""}`;
@@ -42,104 +56,118 @@ export default async function RestaurantPage({
   const opening_hours = restaurant.opening_hours as { weekday_text: string[] } | null;
   const nowUtc = new Date();
   const hoursStatus = getHoursStatus(opening_hours, nowUtc);
-
-  // UTC+7 day index for highlighting today's row.
   const todayIdx = new Date(nowUtc.getTime() + 7 * 60 * 60 * 1000).getUTCDay();
-  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   return (
-    <div className="mx-auto h-full max-w-2xl overflow-y-auto pb-20 md:pb-0">
-      {/* Cover photo / gradient hero */}
-      <div className="relative h-48 w-full shrink-0">
+    <div className="mx-auto h-full max-w-lg overflow-y-auto bg-[#F5F0E8] pb-20 md:pb-0">
+
+      {/* ── Hero ── */}
+      <div className="relative h-[220px] w-full shrink-0 overflow-hidden">
         {restaurant.cover_photo_url ? (
-          <img
-            src={restaurant.cover_photo_url}
-            alt={restaurant.name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-[#D44C2A] to-[#2C2420]" />
-        )}
+          <img src={restaurant.cover_photo_url} alt={restaurant.name} className="h-full w-full object-cover" />
+        ) : null}
+        <div
+          className="h-full w-full"
+          style={{
+            background: heroGradient(restaurant.name),
+            display: restaurant.cover_photo_url ? "none" : "block",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+        {/* Back button */}
         <Link
           href="/"
-          className="absolute top-3 left-3 flex items-center gap-1.5 rounded-lg border border-white/30 bg-black/40 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm hover:bg-black/60"
+          className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/30 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/50"
         >
-          <ArrowLeft className="size-4" />
-          Back
+          <ArrowLeft className="size-4" /> Back
         </Link>
+
+        {/* Name + meta */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+          <h1 className="text-2xl font-bold leading-tight tracking-tight text-white">{restaurant.name}</h1>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            {hoursStatus && (
+              <div className="flex items-center gap-1.5">
+                <span className={cn("size-2 rounded-full", hoursStatus.open ? "bg-green-400" : "bg-red-400")} />
+                <span className="text-xs font-medium text-white/90">
+                  {hoursStatus.open ? "Open" : "Closed"}
+                  {hoursStatus.timeLabel ? ` · ${hoursStatus.timeLabel}` : ""}
+                </span>
+              </div>
+            )}
+            <span className="text-xs text-white/70">
+              {[priceLabel(restaurant.price_range), restaurant.district].filter(Boolean).join(" · ")}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="space-y-4 px-6 py-5">
-        <div>
-          <h1 className="text-2xl font-semibold">{restaurant.name}</h1>
-          {restaurant.address && (
-            <p className="text-muted-foreground mt-1 text-sm">{restaurant.address}</p>
-          )}
-        </div>
+      {/* ── Content ── */}
+      <div className="space-y-4 px-4 pt-4 pb-6">
 
-        {/* Badges: district, cuisines, price */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {restaurant.district && (
-            <Badge variant="secondary">{restaurant.district}</Badge>
-          )}
-          {restaurant.cuisine_type.map((c: string) => (
-            <Badge key={c} variant="secondary">{c}</Badge>
-          ))}
-          {restaurant.tags.map((t: string) => (
-            <Badge key={t} variant="outline" className="font-normal">{t}</Badge>
-          ))}
-          {restaurant.price_range && (
-            <span className="text-primary text-sm font-medium">
-              {priceLabel(restaurant.price_range)}
-            </span>
-          )}
-        </div>
-
-        {/* Google rating */}
-        {restaurant.google_rating != null && (
-          <div className="text-muted-foreground flex items-center gap-1 text-sm">
-            <Star className="size-3.5 fill-current" />
-            <span>
-              {restaurant.google_rating.toFixed(1)}
-              {restaurant.google_rating_count != null && (
-                <span> ({restaurant.google_rating_count.toLocaleString()} reviews)</span>
-              )}
-              {" "}on Google
-            </span>
+        {/* Tags */}
+        {(restaurant.cuisine_type.length > 0 || restaurant.tags.length > 0) && (
+          <div className="flex flex-wrap gap-1.5">
+            {restaurant.cuisine_type.map((c: string) => (
+              <span key={c} className="rounded-full border border-[#D4C8B4] bg-[#EDE6D8] px-2.5 py-1 text-xs font-medium text-[#2C2420]">
+                {c}
+              </span>
+            ))}
+            {restaurant.tags.map((t: string) => (
+              <span key={t} className="rounded-full border border-[#D4C8B4] bg-transparent px-2.5 py-1 text-xs font-normal text-[#8C7E72]">
+                {t}
+              </span>
+            ))}
           </div>
         )}
 
-        {/* Google Maps link */}
+        {/* Stats row */}
+        <div className="flex overflow-hidden rounded-xl border border-[#D4C8B4] bg-[#EDE6D8]">
+          {restaurant.google_rating != null && (
+            <div className="flex flex-1 flex-col items-center gap-0.5 border-r border-[#D4C8B4] py-2.5">
+              <span className="text-xs font-semibold text-[#2C2420]">★ {restaurant.google_rating.toFixed(1)}</span>
+              {restaurant.google_rating_count != null && (
+                <span className="text-[10px] text-[#8C7E72]">{restaurant.google_rating_count.toLocaleString()} reviews</span>
+              )}
+            </div>
+          )}
+          <div className="flex flex-1 flex-col items-center gap-0.5 py-2.5">
+            {avg ? (
+              <>
+                <span className="text-xs font-bold text-[#D44C2A]">{avg}/10</span>
+                <span className="text-[10px] text-[#8C7E72]">{ratingsWithValue.length} {ratingsWithValue.length === 1 ? "rating" : "ratings"}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xs text-[#8C7E72]">—</span>
+                <span className="text-[10px] text-[#8C7E72]">Community</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Your status — client island */}
+        <div>
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#8C7E72]">Your status</p>
+          <RatingSection restaurantId={restaurant.id} />
+        </div>
+
+        {/* Get Directions */}
         <a
           href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm hover:underline"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#D44C2A] py-3.5 text-sm font-bold text-white shadow-[0_3px_10px_rgba(212,76,42,0.30)] transition-all hover:bg-[#B83D1E] active:scale-[.98]"
         >
-          <MapPin className="size-3.5 shrink-0" />
-          Open in Google Maps
+          <Navigation className="size-4" /> Get Directions →
         </a>
 
+        {/* Hours */}
         {opening_hours && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <h2 className="font-semibold">Hours</h2>
-              {hoursStatus && (
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-                    hoursStatus.open
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                      : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400",
-                  )}
-                >
-                  <span className={cn("size-1.5 rounded-full", hoursStatus.open ? "bg-green-500" : "bg-red-500")} />
-                  {hoursStatus.open ? "Open now" : "Closed"}
-                </span>
-              )}
-            </div>
-            <div className="space-y-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8C7E72]">Hours</p>
+            <div className="overflow-hidden rounded-xl border border-[#D4C8B4]">
               {DAYS.map((day, idx) => {
                 const entry = opening_hours.weekday_text.find((s) => s.startsWith(day + ":"));
                 const hoursStr = entry ? entry.slice(day.length + 1).trim() : "—";
@@ -148,8 +176,11 @@ export default async function RestaurantPage({
                   <div
                     key={day}
                     className={cn(
-                      "flex justify-between rounded px-2 py-1 text-sm",
-                      isToday ? "bg-accent font-medium text-foreground" : "text-muted-foreground",
+                      "flex justify-between px-4 py-2 text-sm",
+                      isToday
+                        ? "bg-[#F5E8E4] font-semibold text-[#D44C2A]"
+                        : "bg-[#EDE6D8] text-[#8C7E72]",
+                      idx < DAYS.length - 1 && "border-b border-[#D4C8B4]",
                     )}
                   >
                     <span>{day}</span>
@@ -161,72 +192,56 @@ export default async function RestaurantPage({
           </div>
         )}
 
-        <hr className="border-border" />
-
         {/* Community ratings */}
-        <div className="space-y-4">
-          <div className="flex items-baseline gap-2">
-            <h2 className="font-semibold">Community Ratings</h2>
-            {avg && (
-              <span className="text-muted-foreground text-sm">
-                {avg}★ from {ratingsWithValue.length} rating{ratingsWithValue.length !== 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
-
-          {reviews && reviews.length > 0 ? (
-            <div className="space-y-3">
+        {reviews && reviews.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8C7E72]">Community</p>
+            <div className="flex flex-col gap-2">
               {reviews.map((row, i) => {
-                const profile = Array.isArray(row.profiles)
-                  ? row.profiles[0]
-                  : row.profiles;
+                const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
                 const name = profile?.display_name ?? profile?.username ?? "User";
                 const initials = name.slice(0, 2).toUpperCase();
-
+                const color = avatarColor(name);
+                const score = row.rating as number | null;
                 return (
-                  <div key={i} className="bg-card flex gap-3 rounded-lg border p-4">
+                  <div key={i} className="flex gap-3 rounded-xl border border-[#D4C8B4] bg-[#EDE6D8] p-3.5">
                     {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt={name}
-                        className="size-9 shrink-0 rounded-full object-cover"
-                      />
+                      <img src={profile.avatar_url} alt={name} className="size-9 shrink-0 rounded-full object-cover" />
                     ) : (
                       <div
-                        className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
-                        style={{ backgroundColor: "#D44C2A" }}
+                        className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                        style={{ backgroundColor: color }}
                       >
                         {initials}
                       </div>
                     )}
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium">
-                          @{profile?.username ?? "user"}
-                        </span>
-                        <div className="text-muted-foreground flex shrink-0 items-center gap-2 text-xs">
-                          {row.visited_at && <span>{row.visited_at}</span>}
-                          {row.rating != null && (
-                            <span className="text-foreground font-semibold">
-                              {row.rating}/10
+                        <span className="text-sm font-semibold text-[#2C2420]">@{profile?.username ?? "user"}</span>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {row.visited_at && (
+                            <span className="text-xs text-[#8C7E72]">
+                              {new Date(row.visited_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                            </span>
+                          )}
+                          {score != null && (
+                            <span className={cn(
+                              "rounded-full px-2 py-0.5 text-xs font-bold",
+                              score >= 8.5 ? "bg-[#D44C2A] text-white" : "border border-[#D4C8B4] bg-[#F5F0E8] text-[#2C2420]",
+                            )}>
+                              {score}/10
                             </span>
                           )}
                         </div>
                       </div>
-                      {row.review && (
-                        <p className="text-muted-foreground text-sm">{row.review}</p>
-                      )}
+                      {row.review && <p className="text-sm text-[#5A4E48]">{row.review}</p>}
                     </div>
                   </div>
                 );
               })}
             </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">
-              No reviews yet — be the first
-            </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

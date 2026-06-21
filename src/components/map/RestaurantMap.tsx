@@ -104,9 +104,13 @@ export function RestaurantMap() {
     mapboxgl.accessToken = TOKEN;
 
     const isDark = document.documentElement.classList.contains("dark");
+    const savedStyleId = mapStyleIdRef.current;
+    const initialStyle = savedStyleId
+      ? (MAP_STYLES.find((s) => s.id === savedStyleId)?.url ?? (isDark ? DARK_STYLE : LIGHT_STYLE))
+      : isDark ? DARK_STYLE : LIGHT_STYLE;
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: isDark ? DARK_STYLE : LIGHT_STYLE,
+      style: initialStyle,
       center: PHNOM_PENH_CENTER,
       zoom: DEFAULT_ZOOM,
       attributionControl: false,
