@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, MapPin, Share2, X } from "lucide-react";
+import { CheckCircle2, MapPin, X } from "lucide-react";
 import { useMapStore } from "@/store/mapStore";
 import { cn } from "@/lib/utils";
 
@@ -13,25 +13,11 @@ const primaryBtn =
 export function OnboardingFlow() {
   const [visible, setVisible] = useState(false);
   const [slide, setSlide] = useState(0);
-  const [platform, setPlatform] = useState<"ios" | "android" | "desktop">("desktop");
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const setUserLocation = useMapStore((s) => s.setUserLocation);
 
   useEffect(() => {
     if (localStorage.getItem(ONBOARDED_KEY)) return;
     setVisible(true);
-
-    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isAndroid = /android/i.test(navigator.userAgent);
-    if (isIos) setPlatform("ios");
-    else if (isAndroid) setPlatform("android");
-
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setInstallPrompt(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   function complete() {
@@ -40,11 +26,7 @@ export function OnboardingFlow() {
   }
 
   function advance() {
-    setSlide((s) => {
-      const next = s + 1;
-      if (next === 2 && platform === "desktop") return 3;
-      return next;
-    });
+    setSlide((s) => s + 1);
   }
 
   function enableLocation() {
@@ -57,21 +39,11 @@ export function OnboardingFlow() {
     );
   }
 
-  async function install() {
-    if (!installPrompt) return;
-    await installPrompt.prompt();
-    await installPrompt.userChoice;
-    setInstallPrompt(null);
-    advance();
-  }
-
   if (!visible) return null;
-
-  const dotSlides = platform === "desktop" ? [0, 1, 3] : [0, 1, 2, 3];
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#F5F0E8]">
-      {slide < 3 && (
+      {slide < 2 && (
         <button
           onClick={complete}
           aria-label="Skip onboarding"
@@ -121,44 +93,8 @@ export function OnboardingFlow() {
           </div>
         </Slide>
 
-        {/* Slide 2: Add to Home Screen */}
+        {/* Slide 2: Done */}
         <Slide index={2} current={slide}>
-          <div className="flex flex-col items-center justify-center gap-8 px-8 text-center">
-            <div className="flex size-20 items-center justify-center rounded-full bg-[#EDE6D8]">
-              <Share2 className="size-9 text-[#D44C2A]" />
-            </div>
-            <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-[#2C2420]">Install the app</h2>
-              {platform === "ios" ? (
-                <p className="text-base text-[#8C7E72]">
-                  Tap the{" "}
-                  <Share2 className="inline size-[15px] align-text-bottom text-[#D44C2A]" />{" "}
-                  share icon, then tap &ldquo;Add to Home Screen&rdquo;
-                </p>
-              ) : (
-                <p className="text-base text-[#8C7E72]">
-                  Add FoodRaccoon to your home screen for quick access
-                </p>
-              )}
-            </div>
-            <div className="flex w-full max-w-xs flex-col gap-3">
-              {platform === "android" && installPrompt && (
-                <button onClick={install} className={primaryBtn}>
-                  Install App
-                </button>
-              )}
-              <button
-                onClick={advance}
-                className="text-sm text-[#8C7E72] underline-offset-2 hover:underline"
-              >
-                {platform === "ios" ? "Done" : "Maybe later"}
-              </button>
-            </div>
-          </div>
-        </Slide>
-
-        {/* Slide 3: Done */}
-        <Slide index={3} current={slide}>
           <div className="flex flex-col items-center justify-center gap-8 px-8 text-center">
             <div className="flex size-20 items-center justify-center rounded-full bg-[#EDE6D8]">
               <CheckCircle2 className="size-9 text-[#D44C2A]" />
@@ -178,7 +114,7 @@ export function OnboardingFlow() {
 
       {/* Dot indicators */}
       <div className="flex items-center justify-center gap-2 pb-12">
-        {dotSlides.map((i) => (
+        {[0, 1, 2].map((i) => (
           <div
             key={i}
             className={cn(

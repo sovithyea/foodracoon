@@ -1,6 +1,7 @@
 import { Nav } from "@/components/shell/Nav";
 import { InstallBanner } from "@/components/shell/InstallBanner";
 import { OnboardingFlow } from "@/components/shell/OnboardingFlow";
+import { SplashScreen } from "@/components/shell/SplashScreen";
 
 export default function AppLayout({
   children,
@@ -12,6 +13,7 @@ export default function AppLayout({
       <Nav />
       <InstallBanner />
       <OnboardingFlow />
+      <SplashScreen />
       <main className="relative h-full flex-1 overflow-hidden">{children}</main>
     </div>
   );
