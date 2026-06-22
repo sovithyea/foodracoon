@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { Globe, Lock } from "lucide-react"
+import { useAuthModal } from "@/hooks/useAuthModal"
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter,
 } from "@/components/ui/sheet"
@@ -23,6 +24,7 @@ type Props = {
 
 export function CreateListSheet({ open, onOpenChange, onCreated, editList, onUpdated }: Props) {
   const isEdit = !!editList
+  const openAuthModal = useAuthModal((s) => s.open)
   const [emoji, setEmoji] = useState(editList?.emoji ?? "📍")
   const [title, setTitle] = useState(editList?.title ?? "")
   const [description, setDescription] = useState(editList?.description ?? "")
@@ -59,7 +61,11 @@ export function CreateListSheet({ open, onOpenChange, onCreated, editList, onUpd
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title, emoji, description, is_public: isPublic }),
         })
-        if (!res.ok) throw new Error("Failed to create list")
+        if (!res.ok) {
+          if (res.status === 401) { onOpenChange(false); openAuthModal(); return; }
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.error ?? `Failed to create list (${res.status})`)
+        }
         const created = await res.json()
         onCreated?.(created)
         toast.success("List created")
