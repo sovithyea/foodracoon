@@ -2,19 +2,30 @@
 
 import Link from "next/link";
 import { X } from "lucide-react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuthModal } from "@/hooks/useAuthModal";
 
 export function AuthModal() {
   const { isOpen, close } = useAuthModal();
 
   return (
-    <Sheet open={isOpen} onOpenChange={(o) => !o && close()}>
-      <SheetContent
-        side="bottom"
-        showCloseButton={false}
-        overlayClassName="z-[99]"
-        className="relative z-[100] mx-auto max-w-sm rounded-t-3xl bg-[#F5F0E8] px-8 pb-12 pt-8"
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={close}
+        aria-hidden="true"
+        className={`fixed inset-0 z-[199] bg-black/40 transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+
+      {/* Sheet */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Sign in"
+        className={`fixed inset-x-0 bottom-0 z-[200] mx-auto max-w-sm rounded-t-2xl bg-[#F5F0E8] px-8 pb-12 pt-8 shadow-[0_-4px_24px_rgba(44,36,32,0.12)] transition-transform duration-300 ease-out ${
+          isOpen ? "translate-y-0" : "pointer-events-none translate-y-full"
+        }`}
       >
         <div className="flex flex-col items-center gap-5 text-center">
           <button
@@ -24,10 +35,12 @@ export function AuthModal() {
           >
             <X className="size-4" />
           </button>
-          {/* Logo */}
+
           <img
             src="/icon-512x512.png"
             alt="Foodracoon"
+            width={48}
+            height={48}
             className="size-12 rounded-[14px] shadow-[0_2px_8px_rgba(44,36,32,0.12)]"
           />
 
@@ -55,8 +68,7 @@ export function AuthModal() {
             </Link>
           </div>
         </div>
-      </SheetContent>
-
-    </Sheet>
+      </div>
+    </>
   );
 }
