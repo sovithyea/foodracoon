@@ -32,6 +32,11 @@ export default function RootLayout({
       className={`${inter.variable} ${notoKhmer.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#D44C2A" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </head>
       <body className="bg-background text-foreground min-h-full" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           {children}
