@@ -3,13 +3,20 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Clock } from "lucide-react";
+import Link from "next/link";
 import { useMapStore } from "@/store/mapStore";
 import { SearchResultRow } from "@/components/search/SearchResultRow";
 import { SearchSkeleton } from "@/components/search/SearchSkeleton";
 import { haversineDistance } from "@/lib/geo";
 import type { SearchResponse, SearchResult } from "@/lib/search";
+import type { PeopleResult } from "@/app/api/users/search/route";
 import { SuggestSheet } from "@/components/search/SuggestSheet";
 import { cn } from "@/lib/utils";
+
+const AVATAR_COLORS = ["#D44C2A", "#3A7A5C", "#2C5A8A", "#8A4A2C"];
+function avatarColor(name: string) {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
 
 // Section header — lighter than before, less uppercase noise
 function SectionHeader({ title }: { title: string }) {
@@ -40,12 +47,13 @@ export default function SearchPage() {
   const userLocation    = useMapStore((s) => s.userLocation);
   const setUserLocation = useMapStore((s) => s.setUserLocation);
 
-  const [query,   setQuery]   = useState("");
-  const [results, setResults] = useState<SearchResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState(false);
-  const [recent,  setRecent]  = useState<string[]>([]);
-  const [focused, setFocused] = useState(false);
+  const [query,         setQuery]         = useState("");
+  const [results,       setResults]       = useState<SearchResponse | null>(null);
+  const [people,        setPeople]        = useState<PeopleResult[]>([]);
+  const [loading,       setLoading]       = useState(false);
+  const [error,         setError]         = useState(false);
+  const [recent,        setRecent]        = useState<string[]>([]);
+  const [focused,       setFocused]       = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -89,6 +97,7 @@ export default function SearchPage() {
   useEffect(() => {
     if (query.length < 2) {
       setResults(null);
+      setPeople([]);
       setError(false);
       return;
     }
@@ -97,10 +106,14 @@ export default function SearchPage() {
 
     const timer = setTimeout(async () => {
       try {
-        const res  = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        if (!res.ok) throw new Error("Search failed");
-        const data: SearchResponse = await res.json();
+        const [restaurantRes, peopleRes] = await Promise.all([
+          fetch(`/api/search?q=${encodeURIComponent(query)}`),
+          fetch(`/api/users/search?q=${encodeURIComponent(query)}`),
+        ]);
+        if (!restaurantRes.ok) throw new Error("Search failed");
+        const data: SearchResponse = await restaurantRes.json();
         setResults(data);
+        if (peopleRes.ok) setPeople(await peopleRes.json());
       } catch {
         setError(true);
       } finally {
@@ -164,7 +177,7 @@ export default function SearchPage() {
           />
           {query.length > 0 && (
             <button
-              onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+              onClick={() => { setQuery(""); setPeople([]); setResults(null); inputRef.current?.focus(); }}
               className="absolute right-3.5 text-[#8C7E72] transition-colors hover:text-[#2C2420]"
             >
               <X className="size-4" />
@@ -240,6 +253,42 @@ export default function SearchPage() {
             <p className="mb-3 text-sm text-[#8C7E72]">Can&apos;t find what you&apos;re looking for?</p>
             <SuggestSheet initialName={query} triggerLabel="+ Suggest a restaurant" />
           </div>
+        )}
+
+        {/* People */}
+        {!loading && !error && people.length > 0 && (
+          <section>
+            <SectionHeader title="People" />
+            {people.map((p) => {
+              const name = p.display_name ?? p.username;
+              const initials = name.slice(0, 2).toUpperCase();
+              const color = avatarColor(name);
+              return (
+                <Link
+                  key={p.username}
+                  href={`/u/${p.username}`}
+                  className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[#EDE6D8]"
+                >
+                  {p.avatar_url ? (
+                    <img src={p.avatar_url} alt={name} className="size-8 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div
+                      className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                      style={{ backgroundColor: color }}
+                    >
+                      {initials}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[#2C2420]">{name}</p>
+                    <p className="text-xs text-[#8C7E72]">
+                      @{p.username} · {p.followers_count} followers
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </section>
         )}
 
         {/* Results */}
