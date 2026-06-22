@@ -39,6 +39,7 @@ export function PublicProfileFollow({
   const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [followLoading, setFollowLoading] = useState(false);
+  const [displayedFollowers, setDisplayedFollowers] = useState(followersCount);
 
   const [sheet, setSheet] = useState<"followers" | "following" | null>(null);
   const [sheetUsers, setSheetUsers] = useState<ProfileRow[]>([]);
@@ -77,13 +78,18 @@ export function PublicProfileFollow({
 
   async function toggleFollow() {
     if (!isLoggedIn) { router.push("/login"); return; }
+    const wasFollowing = isFollowing;
     setFollowLoading(true);
+    setIsFollowing(!wasFollowing);
+    setDisplayedFollowers((n) => n + (wasFollowing ? -1 : 1));
     const res = await fetch(`/api/users/${username}/follow`, {
-      method: isFollowing ? "DELETE" : "POST",
+      method: wasFollowing ? "DELETE" : "POST",
     });
     if (res.ok) {
-      setIsFollowing((v) => !v);
       router.refresh();
+    } else {
+      setIsFollowing(wasFollowing);
+      setDisplayedFollowers((n) => n + (wasFollowing ? 1 : -1));
     }
     setFollowLoading(false);
   }
@@ -96,7 +102,7 @@ export function PublicProfileFollow({
           onClick={() => openSheet("followers")}
           className="flex flex-col items-center gap-0.5 transition-opacity hover:opacity-70"
         >
-          <span className="text-lg font-semibold text-[#2C2420]">{followersCount}</span>
+          <span className="text-lg font-semibold text-[#2C2420]">{displayedFollowers}</span>
           <span className="text-xs text-[#8C7E72]">Followers</span>
         </button>
         <button
