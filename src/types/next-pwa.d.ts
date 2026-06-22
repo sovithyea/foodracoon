@@ -1,3 +1,8 @@
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 declare module "next-pwa" {
   import type { NextConfig } from "next";
   interface PWAConfig {
