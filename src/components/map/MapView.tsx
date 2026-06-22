@@ -46,7 +46,7 @@ export function MapView({
   }, [setRestaurants]);
 
   return (
-    <div className="fixed inset-0">
+    <div className="absolute inset-0">
       <RestaurantMap />
       <FilterBar />
       <MapStylePicker />
