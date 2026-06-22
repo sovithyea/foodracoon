@@ -34,10 +34,10 @@ async function fetchList(username: string, slug: string): Promise<PublicListData
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { username, slug } = await params
   const data = await fetchList(username, slug)
-  if (!data) return { title: "List not found — Foodraccoon" }
+  if (!data) return { title: "List not found — FoodRaccoon" }
   return {
-    title: `${data.list.emoji ?? ""} ${data.list.title} by @${username} — Foodraccoon`,
-    description: data.list.description ?? `A restaurant list by @${username} on Foodraccoon`,
+    title: `${data.list.emoji ?? ""} ${data.list.title} by @${username} — FoodRaccoon`,
+    description: data.list.description ?? `A restaurant list by @${username} on FoodRaccoon`,
   }
 }
 
@@ -95,7 +95,7 @@ export default async function PublicListPage({ params }: { params: Promise<Param
 
         <div className="space-y-2 pt-2">
           <Link href="/">
-            <Button className="w-full">Open in Foodraccoon</Button>
+            <Button className="w-full">Open in FoodRaccoon</Button>
           </Link>
           <Button variant="outline" className="w-full" disabled>
             Save this list (coming soon)

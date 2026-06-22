@@ -113,7 +113,8 @@ export function MapStylePicker() {
     <div
       ref={containerRef}
       // Same vertical position as before; left-3 keeps it clear of zoom controls
-      className="absolute bottom-24 left-3 z-10 flex flex-col items-start gap-2 md:bottom-9"
+      className="absolute left-3 z-10 flex flex-col items-start gap-2"
+      style={{ bottom: "calc(env(safe-area-inset-bottom) + 80px)" }}
     >
       {/* ── Thumbnail strip ── */}
       {open && (

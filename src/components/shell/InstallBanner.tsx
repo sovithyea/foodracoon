@@ -90,7 +90,7 @@ export function InstallBanner() {
         <p className="truncate text-xs text-[#2C2420]">
           {platform === "ios"
             ? "Tap Share then “Add to Home Screen”"
-            : "Install Foodraccoon for quick access"}
+            : "Install FoodRaccoon for quick access"}
         </p>
       </div>
 

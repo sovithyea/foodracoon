@@ -1,6 +1,6 @@
 {
-  "name": "Foodraccoon",
-  "short_name": "Foodraccoon",
+  "name": "FoodRaccoon",
+  "short_name": "FoodRaccoon",
   "description": "Discover the best restaurants in Phnom Penh",
   "start_url": "/",
   "display": "standalone",

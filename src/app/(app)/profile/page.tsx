@@ -102,7 +102,7 @@ export default async function ProfilePage() {
       ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
       : "—";
 
-  const displayName = profile?.display_name ?? "Foodraccoon user";
+  const displayName = profile?.display_name ?? "FoodRaccoon user";
   const initials    = displayName.slice(0, 2).toUpperCase();
   const color       = avatarColor(displayName);
 
