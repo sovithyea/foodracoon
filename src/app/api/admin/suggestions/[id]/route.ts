@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database, TablesUpdate } from "@/lib/database.types";
+import { checkOrigin } from "@/lib/request-guard";
 
 const adminDb = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,6 +13,10 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!checkOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { id } = await params;
 
   const supabase = await createServerClient();
