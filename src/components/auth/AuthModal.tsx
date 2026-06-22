@@ -13,17 +13,16 @@ export function AuthModal() {
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="relative mx-auto max-w-sm rounded-t-3xl bg-[#F5F0E8] px-6 pb-10 pt-6"
+        className="relative z-[60] mx-auto max-w-sm rounded-t-3xl bg-[#F5F0E8] px-6 pb-10 pt-6"
       >
-        <button
-          onClick={close}
-          className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-[#EDE6D8] text-[#8C7E72] transition-colors hover:bg-[#D4C8B4] hover:text-[#2C2420]"
-          aria-label="Close"
-        >
-          <X className="size-4" />
-        </button>
-
         <div className="flex flex-col items-center gap-5 text-center">
+          <button
+            onClick={close}
+            className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-[#EDE6D8] text-[#8C7E72] transition-colors hover:bg-[#D4C8B4] hover:text-[#2C2420]"
+            aria-label="Close"
+          >
+            <X className="size-4" />
+          </button>
           {/* Logo */}
           <img
             src="/icon-512x512.png"
@@ -56,6 +55,7 @@ export function AuthModal() {
           </div>
         </div>
       </SheetContent>
+
     </Sheet>
   );
 }

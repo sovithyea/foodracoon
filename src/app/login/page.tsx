@@ -45,15 +45,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#F5F0E8] px-6">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-[#F5F0E8] px-6">
       <div className="w-full max-w-sm space-y-8">
 
-        {/* Wordmark */}
-        <div className="text-center space-y-1">
-          <Link href="/" className="text-3xl font-extrabold tracking-tight text-[#D44C2A]">
-            foodraccoon
-          </Link>
-          <p className="text-sm text-[#8C7E72]">Phnom Penh restaurant discovery</p>
+        {/* Logo + Wordmark */}
+        <div className="flex flex-col items-center gap-3 text-center">
+          <img src="/icon-512x512.png" alt="FoodRaccoon" width={64} height={64} className="size-16 rounded-[18px] shadow-[0_2px_12px_rgba(44,36,32,0.14)]" />
+          <div className="space-y-1">
+            <Link href="/" className="text-3xl font-extrabold tracking-tight text-[#D44C2A]">
+              foodraccoon
+            </Link>
+            <p className="text-sm text-[#8C7E72]">Phnom Penh restaurant discovery</p>
+          </div>
         </div>
 
         {/* Card */}
