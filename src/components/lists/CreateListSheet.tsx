@@ -5,8 +5,8 @@ import { toast } from "sonner"
 import { Globe, Lock } from "lucide-react"
 import { useAuthModal } from "@/hooks/useAuthModal"
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter,
-} from "@/components/ui/sheet"
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -80,13 +80,13 @@ export function CreateListSheet({ open, onOpenChange, onCreated, editList, onUpd
   }
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto rounded-t-xl px-4 pb-6">
-        <SheetHeader className="px-0">
-          <SheetTitle>{isEdit ? "Edit list" : "New list"}</SheetTitle>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit list" : "New list"}</DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 px-6 pb-6 pt-4">
           <div className="space-y-2">
             <Label>Emoji</Label>
             <EmojiPicker value={emoji} onChange={setEmoji} />
@@ -102,7 +102,7 @@ export function CreateListSheet({ open, onOpenChange, onCreated, editList, onUpd
               required
               maxLength={50}
             />
-            <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
+            <p className="text-right text-xs text-muted-foreground">{title.length}/50</p>
           </div>
 
           <div className="space-y-1.5">
@@ -142,13 +142,11 @@ export function CreateListSheet({ open, onOpenChange, onCreated, editList, onUpd
             </button>
           </div>
 
-          <SheetFooter className="px-0 pt-2">
-            <Button type="submit" className="w-full" disabled={!title.trim() || saving}>
-              {saving ? "Saving…" : isEdit ? "Save changes" : "Create list"}
-            </Button>
-          </SheetFooter>
+          <Button type="submit" className="w-full" disabled={!title.trim() || saving}>
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Create list"}
+          </Button>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   )
 }
