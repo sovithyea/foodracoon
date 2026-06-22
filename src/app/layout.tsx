@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Khmer } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SwUpdateReloader } from "@/components/shell/SwUpdateReloader";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -50,6 +51,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           {children}
           <Toaster richColors position="top-center" />
+          <SwUpdateReloader />
         </ThemeProvider>
       </body>
     </html>
