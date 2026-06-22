@@ -121,8 +121,12 @@ export function Nav() {
 
       {/* ── Mobile bottom nav ── */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 flex items-start border-t border-[#D4C8B4] bg-[#F5F0E8] pt-2 md:hidden"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)" }}
+        className="fixed z-20 flex items-center rounded-2xl border border-[#D4C8B4] bg-[#F5F0E8] py-2 shadow-lg md:hidden"
+        style={{
+          left: "1rem",
+          right: "1rem",
+          bottom: "calc(env(safe-area-inset-bottom) + 8px)",
+        }}
       >
         {ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
