@@ -55,7 +55,7 @@ export function Nav() {
           href="/"
           className="mb-5 px-3 text-2xl font-extrabold tracking-tight text-[#D44C2A]"
         >
-          foodraccoon
+          foodracoon
         </Link>
 
         <ul className="flex flex-1 flex-col gap-0.5">
@@ -122,7 +122,7 @@ export function Nav() {
       {/* ── Mobile bottom nav ── */}
       <nav
         className="fixed inset-x-0 bottom-0 z-20 flex items-start border-t border-[#D4C8B4] bg-[#F5F0E8] pt-2 md:hidden"
-        style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)" }}
       >
         {ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
