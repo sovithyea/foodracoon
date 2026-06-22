@@ -12,7 +12,8 @@ export function AuthModal() {
     <Sheet open={isOpen} onOpenChange={(o) => !o && close()}>
       <SheetContent
         side="bottom"
-        className="mx-auto max-w-sm rounded-t-3xl bg-[#F5F0E8] px-6 pb-10 pt-6"
+        showCloseButton={false}
+        className="relative mx-auto max-w-sm rounded-t-3xl bg-[#F5F0E8] px-6 pb-10 pt-6"
       >
         <button
           onClick={close}
