@@ -41,7 +41,7 @@ export function FilterBar() {
           "md:pt-4",
           panelOpen && "md:pr-[392px]",
         )}
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 40px)" }}
       >
         <div className="pointer-events-auto flex items-center gap-2">
 
