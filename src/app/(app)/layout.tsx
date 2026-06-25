@@ -11,6 +11,11 @@ export default function AppLayout({
 }) {
   return (
     <div className="flex h-dvh w-full overflow-hidden">
+      {/* Landscape guard — only shows on narrow landscape viewports */}
+      <div className="landscape-block fixed inset-0 z-[500] flex-col items-center justify-center gap-4 bg-[#F5F0E8]">
+        <img src="/icon-512x512.png" alt="FoodRaccoon" width={64} height={64} className="size-16 rounded-[18px] shadow-md" />
+        <p className="text-base font-semibold text-[#2C2420]">FoodRaccoon works best in portrait mode</p>
+      </div>
       <Nav />
       <InstallBanner />
       <OnboardingFlow />

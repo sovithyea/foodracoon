@@ -181,3 +181,13 @@
   border-radius: 50%;
   animation: fr-pulse 2s ease-in-out infinite;
 }
+
+.landscape-block {
+  display: none;
+}
+
+@media (orientation: landscape) and (max-width: 768px) {
+  .landscape-block {
+    display: flex;
+  }
+}
