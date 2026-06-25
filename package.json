@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@mapbox/mapbox-sdk": "^0.16.2",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
@@ -18,7 +19,6 @@
     "lucide-react": "^1.21.0",
     "mapbox-gl": "^3.25.0",
     "next": "16.2.9",
-    "@ducanh2912/next-pwa": "^10.0.0",
     "next-themes": "^1.0.0-beta.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
